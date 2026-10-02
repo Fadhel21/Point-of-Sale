@@ -15,6 +15,7 @@ module.exports = {
   dbPoolMax: parseInt(process.env.DB_POOL_MAX || '10', 10),
   jwtSecret: wajib('JWT_SECRET'),
   cookieSecret: wajib('COOKIE_SECRET'),
+  demoLogin: process.env.DEMO_LOGIN === 'true',
   sessionHours: parseInt(process.env.SESSION_HOURS || '12', 10),
   timezone: process.env.TZ_TOKO || 'Asia/Jakarta',
   rootDir: path.join(__dirname, '..'),

@@ -104,6 +104,25 @@
       </button>
 
       <p class="catatan redup kecil">Lupa password? Hubungi pemilik toko untuk mengatur ulang.</p>
+
+      <% if (locals.demo && demo.length) { %>
+      <div class="demo-box">
+        <div class="demo-judul">
+          <svg viewBox="0 0 24 24" class="ikon kecil-ikon" aria-hidden="true"><path d="M9 3h6M10 3v6L4.5 18.5A1.6 1.6 0 0 0 5.9 21h12.2a1.6 1.6 0 0 0 1.4-2.5L14 9V3"/><path d="M7 15h10"/></svg>
+          Akun demo <span class="redup">· klik untuk mengisi</span>
+        </div>
+        <div class="demo-grid">
+          <% demo.forEach(function (a) { %>
+            <button type="button" class="demo-akun" data-demo-u="<%= a.username %>" data-demo-p="<%= a.password %>">
+              <span class="demo-peran peran-<%= a.role %>"><%= a.nama.replace('Demo ', '') %></span>
+              <span class="demo-ket"><%= a.ket %></span>
+              <code><%= a.username %></code>
+            </button>
+          <% }) %>
+        </div>
+        <p class="redup kecil" style="margin:.5rem 0 0">Password semua akun demo: <code>demo1234</code></p>
+      </div>
+      <% } %>
     </form>
   </section>
 </main>

@@ -12,24 +12,30 @@ function terkunci(kunci) {
   return g && g.n >= 5 && Date.now() - g.t < 5 * 60 * 1000;
 }
 
+const config = require('../config');
+const { AKUN_DEMO } = require('../lib/demo');
+
+// Akun demo hanya dikirim ke tampilan bila DEMO_LOGIN=true
+const demo = () => (config.demoLogin ? AKUN_DEMO : []);
+
 const amanNext = (n) => (typeof n === 'string' && /^\/(?!\/)/.test(n) ? n : '/');
 
 exports.formLogin = (req, res) => {
   if (req.user) return res.redirect('/');
-  res.render('login', { pesan: null, next: amanNext(req.query.next) });
+  res.render('login', { pesan: null, next: amanNext(req.query.next), demo: demo() });
 };
 
 exports.login = h(async (req, res) => {
   const { username, password } = req.body;
   const next = amanNext(req.body.next);
   const kunci = `${ip(req)}|${String(username || '').toLowerCase()}`;
-  if (terkunci(kunci)) return res.status(429).render('login', { pesan: 'Terlalu banyak percobaan. Coba lagi 5 menit lagi.', next });
+  if (terkunci(kunci)) return res.status(429).render('login', { pesan: 'Terlalu banyak percobaan. Coba lagi 5 menit lagi.', next, demo: demo() });
   const u = await users.verify(username, password);
   if (!u) {
     const g = gagal.get(kunci) || { n: 0, t: Date.now() };
     gagal.set(kunci, { n: g.n + 1, t: Date.now() });
     await audit.log(null, { action: 'login.gagal', data: { username }, ip: ip(req) });
-    return res.status(401).render('login', { pesan: 'Username atau password salah.', next });
+    return res.status(401).render('login', { pesan: 'Username atau password salah.', next, demo: demo() });
   }
   gagal.delete(kunci);
   authMw.login(res, u);

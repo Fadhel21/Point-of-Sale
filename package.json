@@ -9,7 +9,8 @@
     "worker": "node worker/index.js",
     "migrate": "node scripts/migrate.js",
     "buat-pemilik": "node scripts/buat-pemilik.js",
-    "test": "node tests/run.js"
+    "test": "node tests/run.js",
+    "demo": "node scripts/demo.js"
   },
   "type": "commonjs",
   "dependencies": {

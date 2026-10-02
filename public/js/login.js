@@ -1,6 +1,18 @@
 // Interaksi halaman masuk: tampil/sembunyi password, peringatan Caps Lock, status memuat
 (function () {
   'use strict';
+  // Kartu akun demo: isi username & password, sorot sebentar, fokus ke tombol Masuk
+  document.addEventListener('click', function (e) {
+    var d = e.target.closest('[data-demo-u]');
+    if (!d) return;
+    var u = document.getElementById('u'); var p = document.getElementById('p');
+    u.value = d.getAttribute('data-demo-u');
+    p.value = d.getAttribute('data-demo-p');
+    [u, p].forEach(function (el) { el.setAttribute('aria-invalid', 'false'); el.classList.remove('terisi'); void el.offsetWidth; el.classList.add('terisi'); });
+    document.querySelectorAll('.demo-akun').forEach(function (x) { x.classList.toggle('dipilih', x === d); });
+    document.querySelector('.tombol-masuk').focus();
+  });
+
   document.addEventListener('click', function (e) {
     var b = e.target.closest('[data-lihat]');
     if (!b) return;
