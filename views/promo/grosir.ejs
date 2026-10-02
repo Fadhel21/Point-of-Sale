@@ -1,0 +1,22 @@
+<%- include('../partials/atas') %>
+<h1>Harga Grosir / Bertingkat</h1>
+<form class="panel baris" method="post" action="/promo/grosir" x-data="pilihProduk">
+  <div style="flex:2;position:relative"><label>Produk</label>
+    <input x-model="q" @input.debounce.300ms="cari()" placeholder="cari produk" autocomplete="off" required>
+    <input type="hidden" name="product_id" :value="pilih ? pilih.id : ''">
+    <div class="hasil-cari" x-show="hasil.length" @click.outside="hasil = []">
+      <template x-for="r in hasil" :key="r.id"><div @click="ambil(r)"><span x-text="r.name"></span><span class="redup kecil" x-text="rupiah(r.sell_price)"></span></div></template>
+    </div></div>
+  <div><label>Minimal qty (satuan dasar)</label><input name="min_qty" inputmode="decimal" required></div>
+  <div><label>Harga per satuan dasar (Rp)</label><input name="price" inputmode="decimal" required></div>
+  <div class="pas"><button class="btn utama">Tambah</button></div>
+</form>
+<p class="kecil redup">Harga grosir otomatis dipakai di kasir bila total qty produk di keranjang mencapai minimal. Tingkat tertinggi yang memenuhi yang dipakai. Bisa juga diatur dari form produk.</p>
+<div class="tabel-wrap"><table>
+  <thead><tr><th>Produk</th><th class="uang">Harga normal</th><th class="qty">Minimal qty</th><th class="uang">Harga grosir</th><th></th></tr></thead>
+  <tbody><% rows.forEach(function (w) { %><tr><td><a href="/produk/<%= w.product_id %>"><%= w.product_name %></a> <span class="redup kecil"><%= w.sku %></span></td>
+    <td class="uang"><%= rupiah(w.sell_price) %></td><td class="qty">≥ <%= angka(w.min_qty) %></td><td class="uang"><%= rupiah(w.price) %></td>
+    <td><form method="post" action="/promo/grosir/<%= w.id %>/hapus" data-konfirmasi="Hapus tingkat harga ini?"><button class="btn kecil">Hapus</button></form></td></tr><% }) %>
+  <% if (!rows.length) { %><tr><td colspan="5" class="redup">Belum ada harga grosir.</td></tr><% } %></tbody>
+</table></div>
+<%- include('../partials/bawah') %>

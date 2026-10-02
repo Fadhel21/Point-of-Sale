@@ -1,0 +1,16 @@
+<%- include('../partials/atas') %>
+<h1>Stok Opname</h1>
+<form class="panel baris" method="post" action="/persediaan/opname">
+  <div><label>Kategori (kosong = semua produk)</label><select name="category_id"><option value="">Semua</option>
+    <% kategori.forEach(function (k) { %><option value="<%= k.id %>"><%= k.name %></option><% }) %></select></div>
+  <div style="flex:2"><label>Catatan</label><input name="note"></div>
+  <div class="pas"><button class="btn utama">Buat Lembar Opname</button></div>
+</form>
+<div class="tabel-wrap"><table>
+  <thead><tr><th>Nomor</th><th>Dibuat</th><th>Oleh</th><th>Status</th><th class="qty">Item selisih</th><th></th></tr></thead>
+  <tbody><% rows.forEach(function (o) { var w = { draf: '', diajukan: 'kuning', disetujui: 'hijau', ditolak: 'merah' }[o.status]; %>
+    <tr><td><%= o.number %></td><td><%= waktu(o.created_at) %></td><td><%= o.user_name %></td><td><span class="lencana <%= w %>"><%= o.status %></span></td>
+      <td class="qty"><%= o.jml_selisih %></td><td><a class="btn kecil" href="/persediaan/opname/<%= o.id %>">Buka</a></td></tr>
+  <% }) %><% if (!rows.length) { %><tr><td colspan="6" class="redup">Belum ada opname.</td></tr><% } %></tbody>
+</table></div>
+<%- include('../partials/bawah') %>

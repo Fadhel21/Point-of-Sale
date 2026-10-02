@@ -1,0 +1,10 @@
+<%- include('../partials/atas') %>
+<div class="kepala"><h1>Mutasi <%= t.number %></h1><button class="btn no-print" data-cetak>Cetak Surat Jalan</button></div>
+<div class="panel"><table class="ringkas">
+  <tr><td>Dari</td><td><%= t.from_name %></td></tr><tr><td>Ke</td><td><%= t.to_name %></td></tr>
+  <tr><td>Waktu</td><td><%= waktu(t.created_at) %></td></tr><tr><td>Oleh</td><td><%= t.user_name %></td></tr>
+  <% if (t.note) { %><tr><td>Catatan</td><td><%= t.note %></td></tr><% } %>
+</table></div>
+<table><thead><tr><th>SKU</th><th>Produk</th><th class="qty">Qty</th></tr></thead>
+<tbody><% t.items.forEach(function (i) { %><tr><td><%= i.sku %></td><td><%= i.name %></td><td class="qty"><%= angka(i.qty) %></td></tr><% }) %></tbody></table>
+<%- include('../partials/bawah') %>

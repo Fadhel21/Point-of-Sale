@@ -1,0 +1,16 @@
+<%- include('../partials/atas') %>
+<h1>Profil Toko</h1>
+<form class="panel" method="post" action="/pengaturan/toko" style="max-width:640px">
+  <div class="field"><label>Nama toko</label><input name="nama" value="<%= s.nama || '' %>" required></div>
+  <div class="field"><label>Alamat</label><textarea name="alamat" rows="2"><%= s.alamat || '' %></textarea></div>
+  <div class="baris">
+    <div><label>Telepon</label><input name="telepon" value="<%= s.telepon || '' %>"></div>
+    <div><label>Email</label><input type="email" name="email" value="<%= s.email || '' %>"></div>
+    <div><label>NPWP</label><input name="npwp" value="<%= s.npwp || '' %>"></div>
+  </div>
+  <div class="field" style="margin-top:.75rem"><label>Logo</label>
+    <% if (s.logo) { %><img src="/uploads/<%= s.logo %>" alt="" style="max-height:80px;display:block;margin-bottom:.5rem"><% } %>
+    <input type="file" accept="image/png,image/jpeg,image/webp" data-file-ke="logo_data"><input type="hidden" name="logo_data" id="logo_data"></div>
+  <button class="btn utama">Simpan</button>
+</form>
+<%- include('../partials/bawah') %>

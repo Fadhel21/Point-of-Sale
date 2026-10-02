@@ -1,0 +1,15 @@
+<%
+  var hal = parseInt(query.page || '1', 10) || 1;
+  var jmlHal = Math.max(1, Math.ceil((total || 0) / (perPage || 50)));
+  function urlHal(n) {
+    var q = Object.assign({}, query, { page: n }); delete q.ok; delete q.err;
+    return '?' + Object.keys(q).map(function (k) { return encodeURIComponent(k) + '=' + encodeURIComponent(q[k]); }).join('&');
+  }
+%>
+<% if (jmlHal > 1) { %>
+<div class="aksi" style="margin-top:.75rem">
+  <% if (hal > 1) { %><a class="btn kecil" href="<%= urlHal(hal - 1) %>">← Sebelumnya</a><% } %>
+  <span class="redup">Halaman <%= hal %> dari <%= jmlHal %></span>
+  <% if (hal < jmlHal) { %><a class="btn kecil" href="<%= urlHal(hal + 1) %>">Berikutnya →</a><% } %>
+</div>
+<% } %>

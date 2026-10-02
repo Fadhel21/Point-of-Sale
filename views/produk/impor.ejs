@@ -1,0 +1,19 @@
+<%- include('../partials/atas') %>
+<h1>Impor Produk dari CSV</h1>
+<div class="panel">
+  <p>Kolom yang dikenali (baris pertama = judul kolom, pemisah koma atau titik koma):</p>
+  <p><code>sku, barcode, nama, varian, kategori, merek, satuan, harga_beli, harga_jual, stok_minimum, aktif</code></p>
+  <ul class="kecil">
+    <li>Wajib: <code>sku</code>, <code>nama</code>, <code>harga_jual</code>.</li>
+    <li>Angka memakai titik sebagai desimal, tanpa pemisah ribuan (contoh <code>12500</code> atau <code>12500.50</code>).</li>
+    <li>SKU yang sudah ada akan diperbarui; selain itu dibuat baru. Kategori/merek/satuan baru dibuat otomatis.</li>
+    <li>Jika ada satu baris salah, seluruh impor dibatalkan (tidak ada data setengah jadi).</li>
+    <li>Stok tidak diimpor; gunakan Penerimaan Barang atau Penyesuaian Stok.</li>
+  </ul>
+  <form method="post" action="/produk/impor">
+    <input type="file" accept=".csv,text/csv" data-file-ke="csv" data-teks data-maks="5242880" required>
+    <input type="hidden" name="csv" id="csv">
+    <div class="aksi" style="margin-top:1rem"><a class="btn" href="/produk/ekspor">Unduh contoh (ekspor)</a><button class="btn utama">Impor</button></div>
+  </form>
+</div>
+<%- include('../partials/bawah') %>

@@ -1,0 +1,20 @@
+<%- include('../partials/atas') %>
+<h1>Riwayat Shift</h1>
+<form class="panel baris" method="get">
+  <div><label>Dari</label><input type="date" name="from" value="<%= f.from %>"></div>
+  <div><label>Sampai</label><input type="date" name="to" value="<%= f.to %>"></div>
+  <% if (kasir.length) { %><div><label>Kasir</label><select name="user_id"><option value="">Semua</option>
+    <% kasir.forEach(function (k) { %><option value="<%= k.id %>" <%= String(f.user_id) === String(k.id) ? 'selected' : '' %>><%= k.name %></option><% }) %></select></div><% } %>
+  <div class="pas"><button class="btn utama">Tampilkan</button></div>
+</form>
+<div class="tabel-wrap"><table>
+  <thead><tr><th>Buka</th><th>Tutup</th><th>Kasir</th><th>Outlet</th><th class="uang">Penjualan</th><th class="uang">Seharusnya</th><th class="uang">Fisik</th><th class="uang">Selisih</th><th></th></tr></thead>
+  <tbody><% rows.forEach(function (r) { %>
+    <tr><td><%= waktu(r.opened_at) %></td><td><%= r.closed_at ? waktu(r.closed_at) : '' %></td><td><%= r.user_name %></td><td><%= r.outlet_name %></td>
+      <td class="uang"><%= rupiah(r.sales_total || 0) %></td><td class="uang"><%= r.expected_cash ? rupiah(r.expected_cash) : '-' %></td>
+      <td class="uang"><%= r.counted_cash ? rupiah(r.counted_cash) : '-' %></td>
+      <td class="uang"><% if (r.difference) { %><span class="lencana <%= Number(r.difference) === 0 ? 'hijau' : 'merah' %>"><%= rupiah(r.difference) %></span><% } else { %><span class="lencana kuning">buka</span><% } %></td>
+      <td><a class="btn kecil" href="/shift/<%= r.id %>">Detail</a></td></tr>
+  <% }) %><% if (!rows.length) { %><tr><td colspan="9" class="redup">Tidak ada shift.</td></tr><% } %></tbody>
+</table></div>
+<%- include('../partials/bawah') %>

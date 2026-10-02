@@ -1,0 +1,28 @@
+<%- include('../partials/atas') %>
+<div class="kepala"><h1>Penerimaan <%= g.number %></h1>
+  <div class="aksi no-print"><button class="btn" data-cetak>Cetak</button><a class="btn" href="/pembelian/retur/baru?penerimaan=<%= g.id %>">Retur ke Pemasok</a></div></div>
+<div class="grid2">
+  <div class="panel"><table class="ringkas">
+    <tr><td>Pemasok</td><td><%= g.supplier_name %></td></tr>
+    <tr><td>PO</td><td><%= g.po_number ? g.po_number : '-' %></td></tr>
+    <tr><td>No. faktur</td><td><%= g.invoice_no || '-' %></td></tr>
+    <tr><td>Tanggal</td><td><%= waktu(g.created_at) %> oleh <%= g.user_name %></td></tr>
+    <tr><td>Jatuh tempo</td><td><%= g.due_date ? tgl(g.due_date) : '-' %></td></tr>
+  </table></div>
+  <div class="panel"><table class="ringkas">
+    <tr><td>Total</td><td><%= rupiah(g.total) %></td></tr>
+    <tr><td>Dibayar</td><td><%= rupiah(g.paid) %></td></tr>
+    <tr class="tebal"><td>Sisa hutang</td><td><%= rupiah(g.sisa) %></td></tr>
+  </table>
+  <% if (Number(g.sisa) > 0) { %>
+    <form class="baris no-print" method="post" action="/pembelian/hutang/bayar" style="margin-top:.75rem">
+      <input type="hidden" name="receipt_id" value="<%= g.id %>"><input type="hidden" name="kembali" value="detail">
+      <div><label>Bayar (Rp)</label><input name="amount" inputmode="decimal" required></div>
+      <div><label>Metode</label><select name="method_code"><% metode.filter(function (m) { return m.kind !== 'piutang'; }).forEach(function (m) { %><option value="<%= m.code %>"><%= m.name %></option><% }) %></select></div>
+      <div class="pas"><button class="btn utama">Bayar</button></div>
+    </form>
+  <% } %></div>
+</div>
+<table><thead><tr><th>SKU</th><th>Produk</th><th class="qty">Qty</th><th class="qty">Diretur</th><th class="uang">Harga</th></tr></thead>
+<tbody><% g.items.forEach(function (i) { %><tr><td><%= i.sku %></td><td><%= i.name %></td><td class="qty"><%= angka(i.qty) %></td><td class="qty"><%= Number(i.returned_qty) ? angka(i.returned_qty) : '' %></td><td class="uang"><%= rupiah(i.price) %></td></tr><% }) %></tbody></table>
+<%- include('../partials/bawah') %>

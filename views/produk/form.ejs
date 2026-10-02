@@ -1,0 +1,91 @@
+<%- include('../partials/atas') %>
+<% var d = p || (parent ? { name: parent.name, category_id: parent.category_id, brand_id: parent.brand_id, unit_id: parent.unit_id,
+     sell_price: parent.sell_price, cost_price: parent.cost_price, min_stock: parent.min_stock, active: true, units: [], wholesale: [] } : { active: true, units: [], wholesale: [] }); %>
+<div class="kepala">
+  <h1><%= title %><% if (parent) { %> <span class="redup">— varian dari <%= parent.name %></span><% } %></h1>
+  <% if (p) { %>
+  <div class="aksi">
+    <a class="btn" href="/persediaan/kartu?product_id=<%= p.id %>">Kartu Stok</a>
+    <% if (!p.parent_id) { %><a class="btn" href="/produk/baru?parent=<%= p.id %>">+ Varian</a><% } %>
+    <form method="post" action="/produk/<%= p.id %>/hapus" data-konfirmasi="Hapus produk ini (beserta variannya)?"><button class="btn bahaya">Hapus</button></form>
+  </div>
+  <% } %>
+</div>
+<form method="post" action="<%= p ? '/produk/' + p.id : '/produk' %>"
+      data-units="<%= JSON.stringify((d.units || []).map(function (u) { return { unit_id: String(u.unit_id), factor: u.factor, barcode: u.barcode || '', sell_price: u.sell_price }; })) %>"
+      data-grosir="<%= JSON.stringify((d.wholesale || []).map(function (w) { return { min_qty: w.min_qty, price: w.price }; })) %>"
+      x-data="{ units: JSON.parse($el.dataset.units), grosir: JSON.parse($el.dataset.grosir) }">
+  <% if (parent) { %><input type="hidden" name="parent_id" value="<%= parent.id %>"><% } %>
+  <div class="grid2">
+    <div class="panel">
+      <div class="field"><label>Nama produk</label><input name="name" value="<%= d.name || '' %>" required></div>
+      <% if (parent || (p && p.parent_id)) { %>
+        <div class="field"><label>Nama varian (mis. Merah / XL)</label><input name="variant_name" value="<%= d.variant_name || '' %>" required></div>
+      <% } %>
+      <div class="baris">
+        <div><label>Kode / SKU</label><input name="sku" value="<%= d.sku || '' %>" required></div>
+        <div><label>Barcode</label><input name="barcode" value="<%= d.barcode || '' %>"></div>
+      </div>
+      <div class="baris" style="margin-top:.75rem">
+        <div><label>Kategori</label><select name="category_id"><option value="">-</option>
+          <% kategori.forEach(function (k) { %><option value="<%= k.id %>" <%= String(d.category_id) === String(k.id) ? 'selected' : '' %>><%= k.name %></option><% }) %></select></div>
+        <div><label>Merek</label><select name="brand_id"><option value="">-</option>
+          <% merek.forEach(function (k) { %><option value="<%= k.id %>" <%= String(d.brand_id) === String(k.id) ? 'selected' : '' %>><%= k.name %></option><% }) %></select></div>
+        <div><label>Satuan dasar</label><select name="unit_id"><option value="">-</option>
+          <% satuan.forEach(function (k) { %><option value="<%= k.id %>" <%= String(d.unit_id) === String(k.id) ? 'selected' : '' %>><%= k.name %></option><% }) %></select></div>
+      </div>
+      <div class="baris" style="margin-top:.75rem">
+        <% if (lihatHpp) { %><div><label>Harga beli / pokok (Rp)</label><input name="cost_price" inputmode="decimal" value="<%= d.cost_price || '0' %>"></div><% } %>
+        <div><label>Harga jual (Rp)</label><input name="sell_price" inputmode="decimal" value="<%= d.sell_price || '0' %>" required></div>
+        <div><label>Stok minimum</label><input name="min_stock" inputmode="decimal" value="<%= d.min_stock || '0' %>"></div>
+      </div>
+      <% if (lihatHpp && p) { %><p class="kecil redup">Harga pokok diperbarui otomatis (rata-rata tertimbang) setiap penerimaan barang.</p><% } %>
+      <input type="hidden" name="active" value="0">
+      <label class="cek" style="margin-top:.75rem"><input type="checkbox" name="active" value="1" <%= d.active ? 'checked' : '' %>> Aktif (tampil di kasir)</label>
+    </div>
+    <div class="panel">
+      <label>Foto</label>
+      <% if (p && p.photo) { %><img src="/uploads/<%= p.photo %>" alt="" style="max-width:160px;border-radius:6px;display:block;margin-bottom:.5rem"><% } %>
+      <input type="file" accept="image/png,image/jpeg,image/webp" data-file-ke="photo_data" data-maks="2097152">
+      <input type="hidden" name="photo_data" id="photo_data">
+
+      <h2>Satuan bertingkat</h2>
+      <p class="kecil redup">Contoh: 1 dus = 24 pcs. Harga jual 0 = otomatis harga dasar × faktor.</p>
+      <template x-for="(u, i) in units" :key="i">
+        <div class="baris" style="margin-bottom:.4rem">
+          <select :name="'units[' + i + '][unit_id]'" x-model="u.unit_id" style="flex:1 1 90px">
+            <% satuan.forEach(function (k) { %><option value="<%= k.id %>"><%= k.name %></option><% }) %>
+          </select>
+          <input :name="'units[' + i + '][factor]'" x-model="u.factor" placeholder="isi" inputmode="decimal" style="flex:1 1 60px">
+          <input :name="'units[' + i + '][barcode]'" x-model="u.barcode" placeholder="barcode" style="flex:1 1 100px">
+          <input :name="'units[' + i + '][sell_price]'" x-model="u.sell_price" placeholder="harga" inputmode="decimal" style="flex:1 1 90px">
+          <button type="button" class="btn kecil pas" @click="units.splice(i, 1)">✕</button>
+        </div>
+      </template>
+      <button type="button" class="btn kecil" @click="units.push({ unit_id: '<%= satuan[0] ? satuan[0].id : '' %>', factor: '', barcode: '', sell_price: '0' })">+ Satuan</button>
+
+      <h2>Harga grosir</h2>
+      <p class="kecil redup">Harga per satuan dasar bila total qty beli ≥ minimal.</p>
+      <template x-for="(g, i) in grosir" :key="i">
+        <div class="baris" style="margin-bottom:.4rem">
+          <input :name="'wholesale[' + i + '][min_qty]'" x-model="g.min_qty" placeholder="min qty" inputmode="decimal">
+          <input :name="'wholesale[' + i + '][price]'" x-model="g.price" placeholder="harga" inputmode="decimal">
+          <button type="button" class="btn kecil pas" @click="grosir.splice(i, 1)">✕</button>
+        </div>
+      </template>
+      <button type="button" class="btn kecil" @click="grosir.push({ min_qty: '', price: '' })">+ Tingkat harga</button>
+    </div>
+  </div>
+
+  <% if (p && p.variants && p.variants.length) { %>
+  <div class="panel">
+    <h2 style="margin-top:0">Varian</h2>
+    <table><thead><tr><th>Varian</th><th>SKU</th><th>Barcode</th><th class="uang">Harga</th><th></th></tr></thead><tbody>
+      <% p.variants.forEach(function (v) { %><tr><td><%= v.variant_name %></td><td><%= v.sku %></td><td><%= v.barcode || '' %></td><td class="uang"><%= rupiah(v.sell_price) %></td><td><a class="btn kecil" href="/produk/<%= v.id %>">Ubah</a></td></tr><% }) %>
+    </tbody></table>
+    <p class="kecil redup">Produk induk yang punya varian tidak muncul di kasir; yang dijual adalah variannya.</p>
+  </div>
+  <% } %>
+  <div class="aksi"><a class="btn" href="/produk">Kembali</a><button class="btn utama">Simpan</button></div>
+</form>
+<%- include('../partials/bawah') %>

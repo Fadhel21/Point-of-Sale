@@ -1,0 +1,22 @@
+<%- include('../partials/atas') %>
+<h1>Terima Barang<%= po ? ' dari PO ' + po.number : '' %></h1>
+<form class="panel" method="post" action="/pembelian/penerimaan" data-konfirmasi="Simpan penerimaan? Stok bertambah dan harga pokok diperbarui.">
+  <% if (po) { %><input type="hidden" name="po_id" value="<%= po.id %>"><% } %>
+  <div class="baris" style="margin-bottom:.75rem">
+    <% if (po) { %><div><label>Pemasok</label><input value="<%= po.supplier_name %>" disabled></div>
+    <% } else { %><div><label>Pemasok</label><select name="supplier_id" required><option value="">- pilih -</option>
+      <% pemasok.forEach(function (s) { %><option value="<%= s.id %>"><%= s.name %></option><% }) %></select></div><% } %>
+    <div><label>No. faktur pemasok</label><input name="invoice_no"></div>
+    <div><label>Jatuh tempo</label><input type="date" name="due_date"></div>
+  </div>
+  <%- include('../partials/item-produk', { awal: awal, harga: true }) %>
+  <% if (po) { %><p class="kecil redup">Qty boleh dikurangi untuk penerimaan sebagian. Hapus baris yang belum datang.</p><% } %>
+  <div class="baris" style="margin-top:.75rem">
+    <div><label>Dibayar sekarang (Rp)</label><input name="paid_now" inputmode="decimal" value="0"></div>
+    <div><label>Metode bayar</label><select name="method_code"><% metode.filter(function (m) { return m.kind !== 'piutang'; }).forEach(function (m) { %><option value="<%= m.code %>"><%= m.name %></option><% }) %></select></div>
+    <div style="flex:2"><label>Catatan</label><input name="note"></div>
+  </div>
+  <p class="kecil redup">Sisa yang belum dibayar otomatis tercatat sebagai hutang pemasok.</p>
+  <div class="aksi"><button class="btn utama">Simpan Penerimaan</button></div>
+</form>
+<%- include('../partials/bawah') %>

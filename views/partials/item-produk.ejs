@@ -1,0 +1,31 @@
+<%# Daftar item produk dinamis. Parameter: awal (array), harga (boolean: tampilkan kolom harga), labelHarga %>
+<div x-data="daftarItem" data-awal="<%= JSON.stringify(locals.awal || []) %>">
+  <div style="position:relative;margin-bottom:.5rem">
+    <input x-model="q" @input.debounce.300ms="cari()" @keydown.enter.prevent="enter()" placeholder="Cari produk (nama / SKU / barcode) lalu Enter" autocomplete="off">
+    <div class="hasil-cari" x-show="hasil.length" @click.outside="hasil = []">
+      <template x-for="p in hasil" :key="p.id">
+        <div @click="ambil(p)"><span x-text="p.name"></span><span class="redup kecil" x-text="p.sku + ' · stok ' + (p.stok || 0)"></span></div>
+      </template>
+    </div>
+  </div>
+  <div class="tabel-wrap"><table>
+    <thead><tr><th>Produk</th><th class="qty">Stok</th><th class="qty">Qty</th>
+      <% if (locals.harga) { %><th class="uang"><%= locals.labelHarga || 'Harga beli' %></th><th class="uang">Subtotal</th><% } %><th></th></tr></thead>
+    <tbody>
+      <template x-for="(it, i) in items" :key="it.product_id">
+        <tr>
+          <td><span x-text="it.name"></span> <span class="redup kecil" x-text="it.sku"></span>
+            <input type="hidden" :name="'items[' + i + '][product_id]'" :value="it.product_id"></td>
+          <td class="qty" x-text="it.stok || 0"></td>
+          <td class="qty"><input class="qty-input" :name="'items[' + i + '][qty]'" x-model="it.qty" inputmode="decimal" required></td>
+          <% if (locals.harga) { %>
+          <td class="uang"><input style="width:120px;text-align:right" :name="'items[' + i + '][price]'" x-model="it.price" inputmode="decimal" required></td>
+          <td class="uang" x-text="subtotal(it)"></td>
+          <% } %>
+          <td><button type="button" class="btn kecil" @click="hapus(i)">✕</button></td>
+        </tr>
+      </template>
+      <tr x-show="!items.length"><td colspan="6" class="redup">Belum ada produk.</td></tr>
+    </tbody>
+  </table></div>
+</div>

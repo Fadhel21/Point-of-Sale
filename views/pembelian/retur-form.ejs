@@ -1,0 +1,20 @@
+<%- include('../partials/atas') %>
+<h1>Retur Pembelian</h1>
+<% if (!g) { %>
+  <p>Pilih penerimaan barang yang akan diretur:</p>
+  <div class="tabel-wrap"><table><thead><tr><th>Nomor</th><th>Tanggal</th><th>Pemasok</th><th class="uang">Total</th><th></th></tr></thead><tbody>
+  <% daftar.forEach(function (d) { %><tr><td><%= d.number %></td><td><%= tgl(d.created_at) %></td><td><%= d.supplier_name %></td><td class="uang"><%= rupiah(d.total) %></td>
+    <td><a class="btn kecil" href="?penerimaan=<%= d.id %>">Pilih</a></td></tr><% }) %></tbody></table></div>
+<% } else { %>
+<form class="panel" method="post" action="/pembelian/retur" data-konfirmasi="Simpan retur? Stok berkurang dan hutang pemasok dikurangi.">
+  <input type="hidden" name="receipt_id" value="<%= g.id %>">
+  <p>Penerimaan <b><%= g.number %></b> dari <b><%= g.supplier_name %></b></p>
+  <table><thead><tr><th>Produk</th><th class="qty">Diterima</th><th class="qty">Sudah diretur</th><th class="uang">Harga</th><th class="qty">Qty retur</th></tr></thead><tbody>
+  <% g.items.forEach(function (i, n) { %><tr><td><%= i.name %></td><td class="qty"><%= angka(i.qty) %></td><td class="qty"><%= angka(i.returned_qty) %></td><td class="uang"><%= rupiah(i.price) %></td>
+    <td class="qty"><input type="hidden" name="items[<%= n %>][receipt_item_id]" value="<%= i.id %>"><input class="qty-input" name="items[<%= n %>][qty]" inputmode="decimal" placeholder="0"></td></tr><% }) %>
+  </tbody></table>
+  <div class="field" style="margin-top:.75rem"><label>Alasan</label><input name="reason" required></div>
+  <div class="aksi"><button class="btn utama">Simpan Retur</button></div>
+</form>
+<% } %>
+<%- include('../partials/bawah') %>

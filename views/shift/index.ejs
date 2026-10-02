@@ -1,0 +1,41 @@
+<%- include('../partials/atas') %>
+<h1>Buka / Tutup Shift</h1>
+<% if (!s) { %>
+  <form class="panel" method="post" action="/shift/buka" style="max-width:420px">
+    <p>Anda belum membuka shift di <b><%= outletAktif ? outletAktif.name : '' %></b>.</p>
+    <div class="field"><label>Modal awal di laci (Rp)</label><input name="opening_cash" inputmode="decimal" required value="0"></div>
+    <div class="field"><label>Catatan</label><input name="note"></div>
+    <button class="btn utama">Buka Shift</button>
+  </form>
+<% } else { %>
+  <div class="grid4">
+    <div class="stat"><div class="label">Dibuka</div><div class="nilai" style="font-size:1rem"><%= waktu(s.opened_at) %></div></div>
+    <div class="stat"><div class="label">Transaksi</div><div class="nilai"><%= s.sales_count %></div></div>
+    <div class="stat"><div class="label">Total penjualan</div><div class="nilai"><%= rupiah(s.sales_total) %></div></div>
+    <div class="stat"><div class="label">Uang tunai seharusnya</div><div class="nilai"><%= rupiah(s.expected_cash) %></div></div>
+  </div>
+  <div class="grid2" style="margin-top:1rem">
+    <div class="panel">
+      <h2>Rincian kas</h2>
+      <table class="ringkas">
+        <tr><td>Modal awal</td><td><%= rupiah(s.opening_cash) %></td></tr>
+        <tr><td>Penjualan tunai (setelah kembalian)</td><td><%= rupiah(s.cash_sales) %></td></tr>
+        <tr><td>Kas masuk</td><td><%= rupiah(s.cash_in) %></td></tr>
+        <tr><td>Kas keluar</td><td>-<%= rupiah(s.cash_out) %></td></tr>
+        <tr><td>Retur tunai</td><td>-<%= rupiah(s.cash_refund) %></td></tr>
+        <tr class="tebal"><td>Seharusnya di laci</td><td><%= rupiah(s.expected_cash) %></td></tr>
+      </table>
+      <h2>Per metode bayar</h2>
+      <table class="ringkas"><% bayar.forEach(function (b) { %><tr><td><%= b.name || b.method_code %> (<%= b.jml %>)</td><td><%= rupiah(b.total) %></td></tr><% }) %></table>
+    </div>
+    <form class="panel" method="post" action="/shift/tutup" data-konfirmasi="Tutup shift sekarang? Setelah ditutup, transaksi shift ini tidak bisa di-void.">
+      <h2>Tutup shift</h2>
+      <p class="kecil redup">Hitung uang fisik di laci, lalu masukkan jumlahnya. Selisih akan dicatat.</p>
+      <div class="field"><label>Uang fisik di laci (Rp)</label><input name="counted_cash" inputmode="decimal" required></div>
+      <div class="field"><label>Catatan</label><input name="note"></div>
+      <button class="btn bahaya">Tutup Shift</button>
+      <a class="btn" href="/shift/kas">Kas Masuk/Keluar</a>
+    </form>
+  </div>
+<% } %>
+<%- include('../partials/bawah') %>

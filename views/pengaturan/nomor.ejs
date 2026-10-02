@@ -1,0 +1,11 @@
+<%- include('../partials/atas') %>
+<h1>Nomor Dokumen</h1>
+<form class="panel" method="post" action="/pengaturan/nomor" style="max-width:720px">
+  <p class="kecil redup">Penanda: <code>{OUTLET}</code> kode outlet, <code>{YYYYMMDD}</code>/<code>{YYMMDD}</code>/<code>{YYMM}</code>/<code>{DD}</code> tanggal, <code>{NNNN}</code> nomor urut.
+    Bila ada penanda hari, urutan dimulai dari 1 setiap hari per outlet; bila tidak, setiap bulan.</p>
+  <% Object.keys(jenis).forEach(function (k) { %>
+    <div class="field"><label><%= jenis[k] %></label><input name="<%= k %>" value="<%= s[k] || '' %>" required></div>
+  <% }) %>
+  <button class="btn utama">Simpan</button>
+</form>
+<%- include('../partials/bawah') %>

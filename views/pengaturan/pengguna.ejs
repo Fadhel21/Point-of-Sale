@@ -1,0 +1,35 @@
+<%- include('../partials/atas') %>
+<h1>Pengguna & Peran</h1>
+<form class="panel" method="post" action="/pengaturan/pengguna">
+  <% if (edit) { %><input type="hidden" name="id" value="<%= edit.id %>"><% } %>
+  <div class="baris">
+    <div><label>Nama</label><input name="name" value="<%= edit ? edit.name : '' %>" required></div>
+    <div><label>Username</label><input name="username" value="<%= edit ? edit.username : '' %>" required autocomplete="off"></div>
+    <div><label>Email</label><input type="email" name="email" value="<%= edit ? edit.email || '' : '' %>"></div>
+    <div><label>Password <%= edit ? '(kosongkan bila tidak diganti)' : '' %></label><input type="password" name="password" <%= edit ? '' : 'required' %> minlength="6" autocomplete="new-password"></div>
+  </div>
+  <div class="baris" style="margin-top:.5rem">
+    <div><label>Peran</label><select name="role">
+      <% Object.keys(namaPeran).forEach(function (r) { %><option value="<%= r %>" <%= edit && edit.role === r ? 'selected' : '' %>><%= namaPeran[r] %></option><% }) %></select></div>
+    <div><label>Outlet</label><select name="outlet_id"><option value="">-</option>
+      <% semuaOutlet.forEach(function (o) { %><option value="<%= o.id %>" <%= edit && String(edit.outlet_id) === String(o.id) ? 'selected' : '' %>><%= o.name %></option><% }) %></select></div>
+    <div class="pas"><input type="hidden" name="active" value="0"><label class="cek"><input type="checkbox" name="active" value="1" <%= !edit || edit.active ? 'checked' : '' %>> Aktif</label></div>
+    <div class="pas"><button class="btn utama"><%= edit ? 'Simpan' : 'Tambah' %></button><% if (edit) { %> <a class="btn" href="/pengaturan/pengguna">Batal</a><% } %></div>
+  </div>
+</form>
+<div class="panel kecil">
+  <b>Hak akses peran bawaan:</b>
+  <ul style="margin:.3rem 0 0">
+    <li><b>Pemilik</b> — semua akses.</li>
+    <li><b>Manajer/Supervisor</b> — semua kecuali pengaturan sistem; bisa menyetujui void, retur, dan opname.</li>
+    <li><b>Kasir</b> — kasir, shift sendiri, riwayat sendiri, pelanggan; tidak melihat harga beli dan laba.</li>
+    <li><b>Gudang</b> — produk, persediaan, pembelian.</li>
+  </ul>
+</div>
+<table><thead><tr><th>Nama</th><th>Username</th><th>Peran</th><th>Outlet</th><th>Status</th><th></th></tr></thead><tbody>
+<% rows.forEach(function (u) { %><tr><td><%= u.name %></td><td><%= u.username %></td><td><%= namaPeran[u.role] %></td><td><%= u.outlet_name || '-' %></td>
+  <td><span class="lencana <%= u.active ? 'hijau' : '' %>"><%= u.active ? 'aktif' : 'nonaktif' %></span></td>
+  <td><div class="aksi"><a class="btn kecil" href="?edit=<%= u.id %>">Ubah</a>
+    <% if (String(u.id) !== String(user.id)) { %><form method="post" action="/pengaturan/pengguna/<%= u.id %>/hapus" data-konfirmasi="Hapus pengguna <%= u.username %>?"><button class="btn kecil">Hapus</button></form><% } %></div></td></tr><% }) %>
+</tbody></table>
+<%- include('../partials/bawah') %>

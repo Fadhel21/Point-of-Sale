@@ -1,0 +1,29 @@
+<%- include('../partials/atas') %>
+<div class="kepala"><h1>Opname <%= o.number %> <span class="lencana"><%= o.status %></span></h1><button class="btn no-print" data-cetak>Cetak lembar hitung</button></div>
+<p class="redup">Outlet <%= o.outlet_name %> · dibuat <%= waktu(o.created_at) %> oleh <%= o.user_name %>
+  <% if (o.approved_at) { %> · diproses <%= waktu(o.approved_at) %> oleh <%= o.approver_name %><% } %></p>
+<p class="kecil redup">Stok sistem dicatat saat lembar dibuat. Saat disetujui, stok disesuaikan sebesar selisih (fisik − sistem), sehingga penjualan selama hitung tetap tercatat.</p>
+<form method="post" action="/persediaan/opname/<%= o.id %>">
+  <div class="tabel-wrap"><table>
+    <thead><tr><th>SKU</th><th>Produk</th><th class="qty">Sistem</th><th class="qty">Fisik</th><th class="qty">Selisih</th><% if (lihatHpp) { %><th class="uang">Nilai selisih</th><% } %></tr></thead>
+    <tbody><% o.items.forEach(function (i) { %>
+      <tr><td><%= i.sku %></td><td><%= i.name %><%= i.variant_name ? ' - ' + i.variant_name : '' %></td><td class="qty"><%= angka(i.system_qty) %></td>
+        <td class="qty"><% if (o.status === 'draf') { %><input class="qty-input" name="count[<%= i.id %>]" value="<%= nilaiQty(i.counted_qty) %>" inputmode="decimal"><% } else { %><%= angka(i.counted_qty) %><% } %></td>
+        <td class="qty"><% if (Number(i.selisih)) { %><span class="lencana <%= Number(i.selisih) < 0 ? 'merah' : 'hijau' %>"><%= angka(i.selisih) %></span><% } %></td>
+        <% if (lihatHpp) { %><td class="uang"><%= Number(i.nilai_selisih) ? rupiah(i.nilai_selisih) : '' %></td><% } %></tr>
+    <% }) %></tbody>
+  </table></div>
+  <% if (o.status === 'draf') { %>
+    <div class="aksi no-print" style="margin-top:1rem">
+      <button class="btn" name="aksi" value="simpan" data-boleh-ulang>Simpan Hitungan</button>
+      <button class="btn utama" name="aksi" value="ajukan">Ajukan untuk Disetujui</button>
+    </div>
+  <% } %>
+</form>
+<% if (o.status === 'diajukan' && boleh('persediaan.setujui')) { %>
+  <form class="aksi no-print" method="post" action="/persediaan/opname/<%= o.id %>/setujui" style="margin-top:1rem" data-konfirmasi="Proses opname ini?">
+    <button class="btn" name="aksi" value="tolak">Tolak</button>
+    <button class="btn utama" name="aksi" value="setujui">Setujui & Sesuaikan Stok</button>
+  </form>
+<% } %>
+<%- include('../partials/bawah') %>

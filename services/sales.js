@@ -163,7 +163,7 @@ async function create({ user, outletId, input, ip }) {
 
 async function get(id) {
   const { rows } = await db.query(
-    `SELECT s.*, u.name AS user_name, o.name AS outlet_name, o.address AS outlet_address, o.phone AS outlet_phone,
+    `SELECT s.*, (s.dpp - s.cost_total) AS laba_kotor, u.name AS user_name, o.name AS outlet_name, o.address AS outlet_address, o.phone AS outlet_phone,
             c.name AS customer_name, c.code AS customer_code, c.email AS customer_email, c.points AS customer_points,
             v.code AS voucher_code, vu.name AS void_user_name, va.name AS void_approver_name
      FROM sales s JOIN users u ON u.id = s.user_id JOIN outlets o ON o.id = s.outlet_id

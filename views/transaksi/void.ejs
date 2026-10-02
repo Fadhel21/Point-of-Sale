@@ -1,0 +1,14 @@
+<%- include('../partials/atas') %>
+<div class="kepala"><h1>Pembatalan (Void)</h1></div>
+<form class="panel baris" method="get">
+  <div><label>Dari</label><input type="date" name="from" value="<%= f.from %>"></div>
+  <div><label>Sampai</label><input type="date" name="to" value="<%= f.to %>"></div>
+  <div class="pas"><button class="btn utama">Tampilkan</button></div>
+</form>
+<p class="redup kecil">Untuk mem-void, buka transaksi dari <a href="/transaksi">Riwayat Penjualan</a>. Void hanya bisa selama shift transaksi masih terbuka dan butuh persetujuan supervisor.</p>
+<div class="tabel-wrap"><table>
+  <thead><tr><th>No. Struk</th><th>Waktu transaksi</th><th>Kasir</th><th class="uang">Total</th></tr></thead>
+  <tbody><% rows.forEach(function (r) { %><tr><td><a href="/transaksi/<%= r.id %>"><%= r.number %></a></td><td><%= waktu(r.created_at) %></td><td><%= r.user_name %></td><td class="uang"><%= rupiah(r.total) %></td></tr><% }) %>
+  <% if (!rows.length) { %><tr><td colspan="4" class="redup">Tidak ada transaksi void.</td></tr><% } %></tbody>
+</table></div>
+<%- include('../partials/bawah') %>

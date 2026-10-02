@@ -1,0 +1,39 @@
+<%- include('partials/atas') %>
+<% function sel(v, tipe) { if (v === null || v === undefined) return ''; if (tipe === 'uang') return rupiah(v); if (tipe === 'qty') return angka(v); return v; }
+   function qs(extra) { var q = Object.assign({}, query, extra); delete q.ok; delete q.err; return '?' + Object.keys(q).map(function (k) { return encodeURIComponent(k) + '=' + encodeURIComponent(q[k]); }).join('&'); } %>
+<div class="kepala">
+  <h1><%= hasil.judul %></h1>
+  <div class="aksi no-print">
+    <a class="btn" href="<%= qs({ format: 'csv' }) %>">Ekspor CSV</a>
+    <a class="btn" href="<%= qs({ format: 'pdf' }) %>" target="_blank">PDF</a>
+    <button class="btn" data-cetak>Cetak</button>
+  </div>
+</div>
+<form class="panel baris no-print" method="get">
+  <% if (jenis !== 'stok') { %>
+  <div><label>Dari</label><input type="date" name="from" value="<%= f.from %>"></div>
+  <div><label>Sampai</label><input type="date" name="to" value="<%= f.to %>"></div>
+  <% } %>
+  <div><label>Outlet</label><select name="outlet_id"><option value="semua" <%= f.outlet_id === 'semua' ? 'selected' : '' %>>Semua outlet</option>
+    <% outlets.forEach(function (o) { %><option value="<%= o.id %>" <%= String(f.outlet_id) === String(o.id) ? 'selected' : '' %>><%= o.name %></option><% }) %></select></div>
+  <% if (['penjualan','produk','kasir','pembayaran','laba','shift','retur','pajak'].includes(jenis)) { %>
+  <div><label>Kasir</label><select name="user_id"><option value="">Semua</option>
+    <% kasir.forEach(function (k) { %><option value="<%= k.id %>" <%= String(f.userId) === String(k.id) ? 'selected' : '' %>><%= k.name %></option><% }) %></select></div>
+  <% } %>
+  <% if (jenis === 'penjualan') { %><div><label>Kelompok</label><select name="grup"><option value="hari">Harian</option><option value="bulan" <%= f.grup === 'bulan' ? 'selected' : '' %>>Bulanan</option></select></div><% } %>
+  <% if (jenis === 'produk') { %><div><label>Kelompok</label><select name="grup"><option value="produk">Per produk</option><option value="kategori" <%= f.grup === 'kategori' ? 'selected' : '' %>>Per kategori</option></select></div><% } %>
+  <div class="pas"><button class="btn utama">Tampilkan</button></div>
+</form>
+<p class="redup">Periode: <%= periode %></p>
+<div class="tabel-wrap"><table>
+  <thead><tr><% hasil.kolom.forEach(function (k) { %><th class="<%= k.tipe === 'uang' ? 'uang' : (k.tipe === 'qty' || k.tipe === 'angka' ? 'qty' : '') %>"><%= k.label %></th><% }) %></tr></thead>
+  <tbody>
+    <% hasil.baris.forEach(function (r) { %><tr><% hasil.kolom.forEach(function (k) { %><td class="<%= k.tipe === 'uang' ? 'uang' : (k.tipe === 'qty' || k.tipe === 'angka' ? 'qty' : '') %>"><%= sel(r[k.key], k.tipe) %></td><% }) %></tr><% }) %>
+    <% if (!hasil.baris.length) { %><tr><td colspan="<%= hasil.kolom.length %>" class="redup">Tidak ada data pada periode ini.</td></tr><% } %>
+  </tbody>
+  <% if (Object.keys(hasil.total).length && hasil.baris.length) { %>
+  <tfoot><tr><% hasil.kolom.forEach(function (k, i) { %><td class="<%= k.tipe === 'uang' ? 'uang' : (k.tipe === 'qty' ? 'qty' : '') %>"><%= i === 0 ? 'TOTAL' : sel(hasil.total[k.key], k.tipe) %></td><% }) %></tr></tfoot>
+  <% } %>
+</table></div>
+<% if (hasil.catatan) { %><div class="panel" style="margin-top:1rem"><table class="ringkas"><% hasil.catatan.forEach(function (c) { %><tr><td><%= c[0] %></td><td class="tebal"><%= rupiah(c[1]) %></td></tr><% }) %></table></div><% } %>
+<%- include('partials/bawah') %>

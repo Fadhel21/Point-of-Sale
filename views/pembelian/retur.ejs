@@ -1,0 +1,9 @@
+<%- include('../partials/atas') %>
+<div class="kepala"><h1>Retur Pembelian</h1><a class="btn utama" href="/pembelian/retur/baru">+ Retur</a></div>
+<div class="tabel-wrap"><table>
+  <thead><tr><th>Nomor</th><th>Tanggal</th><th>Pemasok</th><th>Penerimaan</th><th>Alasan</th><th class="uang">Nilai</th></tr></thead>
+  <tbody><% rows.forEach(function (r) { %><tr><td><%= r.number %></td><td><%= tgl(r.created_at) %></td><td><%= r.supplier_name %></td>
+    <td><a href="/pembelian/penerimaan/<%= r.receipt_id %>"><%= r.receipt_number %></a></td><td><%= r.reason %></td><td class="uang"><%= rupiah(r.total) %></td></tr><% }) %>
+  <% if (!rows.length) { %><tr><td colspan="6" class="redup">Belum ada retur pembelian.</td></tr><% } %></tbody>
+</table></div>
+<%- include('../partials/bawah') %>

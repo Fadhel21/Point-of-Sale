@@ -1,0 +1,13 @@
+<%- include('../partials/atas') %>
+<h1>PO Baru</h1>
+<% if (!pemasok.length) { %><div class="notif error">Tambahkan pemasok dulu di <a href="/pembelian/pemasok">Pemasok</a>.</div><% } %>
+<form class="panel" method="post" action="/pembelian/po">
+  <div class="baris" style="margin-bottom:.75rem">
+    <div><label>Pemasok</label><select name="supplier_id" required><option value="">- pilih -</option>
+      <% pemasok.forEach(function (s) { %><option value="<%= s.id %>"><%= s.name %></option><% }) %></select></div>
+    <div style="flex:2"><label>Catatan</label><input name="note"></div>
+  </div>
+  <%- include('../partials/item-produk', { awal: awal, harga: true }) %>
+  <div class="aksi" style="margin-top:.75rem"><a class="btn" href="/pembelian/po">Batal</a><button class="btn utama">Simpan PO</button></div>
+</form>
+<%- include('../partials/bawah') %>

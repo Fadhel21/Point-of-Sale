@@ -87,7 +87,8 @@ async function card({ productId, outletId, from, to }) {
 
 async function lowStock(outletId, limit = 100) {
   const { rows } = await db.query(
-    `SELECT p.id, p.sku, p.name, p.variant_name, p.min_stock, COALESCE(s.qty,0) AS qty, o.name AS outlet_name, o.id AS outlet_id
+    `SELECT p.id, p.sku, p.name, p.variant_name, p.min_stock, COALESCE(s.qty,0) AS qty, p.min_stock - COALESCE(s.qty,0) AS kurang,
+            p.cost_price, o.name AS outlet_name, o.id AS outlet_id
      FROM products p CROSS JOIN outlets o
      LEFT JOIN stocks s ON s.product_id = p.id AND s.outlet_id = o.id
      WHERE p.deleted_at IS NULL AND p.active AND p.min_stock > 0 AND o.deleted_at IS NULL AND o.active

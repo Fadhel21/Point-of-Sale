@@ -1,0 +1,34 @@
+<%- include('../partials/atas') %>
+<div class="kepala"><h1>Laporan Shift #<%= r.id %></h1><button class="btn no-print" data-cetak>Cetak</button></div>
+<div class="panel" style="max-width:520px">
+  <table class="ringkas">
+    <tr><td>Kasir</td><td><%= r.user_name %></td></tr>
+    <tr><td>Outlet</td><td><%= r.outlet_name %></td></tr>
+    <tr><td>Dibuka</td><td><%= waktu(r.opened_at) %></td></tr>
+    <tr><td>Ditutup</td><td><%= r.closed_at ? waktu(r.closed_at) : 'masih buka' %></td></tr>
+    <tr><td>Jumlah transaksi</td><td><%= r.sales_count %> (void <%= r.void_count %>)</td></tr>
+    <tr><td>Total penjualan</td><td><%= rupiah(r.sales_total) %></td></tr>
+  </table>
+  <h2>Per metode bayar</h2>
+  <table class="ringkas"><% bayar.forEach(function (b) { %><tr><td><%= b.name || b.method_code %> (<%= b.jml %>)</td><td><%= rupiah(b.total) %></td></tr><% }) %></table>
+  <h2>Kas</h2>
+  <table class="ringkas">
+    <tr><td>Modal awal</td><td><%= rupiah(r.opening_cash) %></td></tr>
+    <tr><td>Penjualan tunai bersih</td><td><%= rupiah(r.cash_sales) %></td></tr>
+    <tr><td>Kas masuk</td><td><%= rupiah(r.cash_in) %></td></tr>
+    <tr><td>Kas keluar</td><td>-<%= rupiah(r.cash_out) %></td></tr>
+    <tr><td>Retur tunai</td><td>-<%= rupiah(r.cash_refund) %></td></tr>
+    <tr class="tebal"><td>Seharusnya</td><td><%= rupiah(r.expected_cash) %></td></tr>
+    <% if (r.status === 'tutup') { %>
+      <tr><td>Uang fisik</td><td><%= rupiah(r.counted_cash) %></td></tr>
+      <tr class="tebal"><td>Selisih</td><td><%= rupiah(r.difference) %></td></tr>
+    <% } %>
+  </table>
+  <% if (kas.length) { %>
+  <h2>Kas masuk/keluar</h2>
+  <table class="ringkas"><% kas.forEach(function (k) { %><tr><td><%= waktu(k.created_at) %> · <%= k.direction %> · <%= k.note %></td><td><%= rupiah(k.amount) %></td></tr><% }) %></table>
+  <% } %>
+  <% if (r.note) { %><p class="kecil">Catatan: <%= r.note %></p><% } %>
+</div>
+<% if (cetak) { %><script src="/static/js/struk.js" data-otomatis="1"></script><% } %>
+<%- include('../partials/bawah') %>

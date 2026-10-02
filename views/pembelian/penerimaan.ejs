@@ -1,0 +1,10 @@
+<%- include('../partials/atas') %>
+<div class="kepala"><h1>Penerimaan Barang</h1><a class="btn utama" href="/pembelian/penerimaan/baru">+ Terima tanpa PO</a></div>
+<p class="kecil redup">Untuk menerima barang dari PO, buka PO lalu klik "Terima Barang". Penerimaan sebagian diperbolehkan.</p>
+<div class="tabel-wrap"><table>
+  <thead><tr><th>Nomor</th><th>Tanggal</th><th>Pemasok</th><th>PO</th><th>Faktur</th><th class="uang">Total</th><th class="uang">Sisa hutang</th></tr></thead>
+  <tbody><% rows.forEach(function (g) { %><tr><td><a href="/pembelian/penerimaan/<%= g.id %>"><%= g.number %></a></td><td><%= tgl(g.created_at) %></td><td><%= g.supplier_name %></td>
+    <td><%= g.po_number || '-' %></td><td><%= g.invoice_no || '' %></td><td class="uang"><%= rupiah(g.total) %></td><td class="uang"><%= rupiah(g.sisa) %></td></tr><% }) %>
+  <% if (!rows.length) { %><tr><td colspan="7" class="redup">Belum ada penerimaan.</td></tr><% } %></tbody>
+</table></div>
+<%- include('../partials/bawah') %>

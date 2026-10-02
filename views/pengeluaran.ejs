@@ -1,0 +1,25 @@
+<%- include('partials/atas') %>
+<h1>Biaya Operasional</h1>
+<form class="panel baris" method="post" action="/pengeluaran">
+  <% if (edit) { %><input type="hidden" name="id" value="<%= edit.id %>"><% } %>
+  <div><label>Tanggal</label><input type="date" name="expense_date" value="<%= edit ? edit.expense_date : f.to %>" required></div>
+  <div><label>Kategori</label><select name="category_id" required><option value="">- pilih -</option>
+    <% kategori.forEach(function (k) { %><option value="<%= k.id %>" <%= edit && String(edit.category_id) === String(k.id) ? 'selected' : '' %>><%= k.name %></option><% }) %></select></div>
+  <div style="flex:2"><label>Keterangan</label><input name="description" value="<%= edit ? edit.description : '' %>" required></div>
+  <div><label>Jumlah (Rp)</label><input name="amount" inputmode="decimal" value="<%= edit ? edit.amount : '' %>" required></div>
+  <div class="pas"><button class="btn utama"><%= edit ? 'Simpan' : 'Tambah' %></button><% if (edit) { %> <a class="btn" href="/pengeluaran">Batal</a><% } %></div>
+</form>
+<form class="baris" method="get" style="margin-bottom:.75rem">
+  <div><input type="date" name="from" value="<%= f.from %>"></div><div><input type="date" name="to" value="<%= f.to %>"></div>
+  <div><select name="category_id"><option value="">Semua kategori</option><% kategori.forEach(function (k) { %><option value="<%= k.id %>" <%= String(f.category_id) === String(k.id) ? 'selected' : '' %>><%= k.name %></option><% }) %></select></div>
+  <div class="pas"><button class="btn">Tampilkan</button></div>
+</form>
+<div class="tabel-wrap"><table>
+  <thead><tr><th>Tanggal</th><th>Nomor</th><th>Kategori</th><th>Keterangan</th><th>Oleh</th><th class="uang">Jumlah</th><th></th></tr></thead>
+  <tbody><% rows.forEach(function (e) { %><tr><td><%= tgl(e.expense_date) %></td><td><%= e.number %></td><td><%= e.category_name %></td><td><%= e.description %></td><td><%= e.user_name %></td>
+    <td class="uang"><%= rupiah(e.amount) %></td>
+    <td><div class="aksi"><a class="btn kecil" href="?edit=<%= e.id %>">Ubah</a>
+      <form method="post" action="/pengeluaran/<%= e.id %>/hapus" data-konfirmasi="Hapus biaya ini?"><button class="btn kecil">Hapus</button></form></div></td></tr><% }) %>
+  <% if (!rows.length) { %><tr><td colspan="7" class="redup">Tidak ada biaya pada periode ini.</td></tr><% } %></tbody>
+</table></div>
+<%- include('partials/bawah') %>

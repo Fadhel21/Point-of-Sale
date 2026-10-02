@@ -1,0 +1,35 @@
+<%- include('../partials/atas') %>
+<h1>Diskon Produk / Kategori</h1>
+<form class="panel" method="post" action="/promo/diskon" x-data="pilihProduk">
+  <% if (edit) { %><input type="hidden" name="id" value="<%= edit.id %>"><% } %>
+  <div class="baris">
+    <div><label>Nama promo</label><input name="name" value="<%= edit ? edit.name : '' %>" required></div>
+    <div style="position:relative"><label>Produk (atau pilih kategori)</label>
+      <input x-model="q" @input.debounce.300ms="cari()" placeholder="<%= produkEdit ? produkEdit.name : 'cari produk' %>" autocomplete="off">
+      <input type="hidden" name="product_id" :value="pilih ? pilih.id : '<%= edit && edit.product_id ? edit.product_id : '' %>'">
+      <div class="hasil-cari" x-show="hasil.length" @click.outside="hasil = []">
+        <template x-for="r in hasil" :key="r.id"><div @click="ambil(r)"><span x-text="r.name"></span><span class="redup kecil" x-text="r.sku"></span></div></template>
+      </div></div>
+    <div><label>Kategori</label><select name="category_id"><option value="">-</option>
+      <% kategori.forEach(function (k) { %><option value="<%= k.id %>" <%= edit && String(edit.category_id) === String(k.id) ? 'selected' : '' %>><%= k.name %></option><% }) %></select></div>
+  </div>
+  <div class="baris" style="margin-top:.5rem">
+    <div class="pas"><label>Jenis</label><select name="disc_type"><option value="persen" <%= edit && edit.disc_type === 'persen' ? 'selected' : '' %>>Persen (%)</option><option value="nominal" <%= edit && edit.disc_type === 'nominal' ? 'selected' : '' %>>Nominal per unit (Rp)</option></select></div>
+    <div><label>Nilai</label><input name="value" inputmode="decimal" value="<%= edit ? edit.value : '' %>" required></div>
+    <div><label>Mulai</label><input type="datetime-local" name="starts_at" value="<%= edit ? tgl(edit.starts_at, 'YYYY-MM-DDTHH:mm') : '' %>" required></div>
+    <div><label>Selesai</label><input type="datetime-local" name="ends_at" value="<%= edit ? tgl(edit.ends_at, 'YYYY-MM-DDTHH:mm') : '' %>" required></div>
+    <div class="pas"><label class="cek"><input type="checkbox" name="active" value="1" <%= !edit || edit.active ? 'checked' : '' %>> Aktif</label></div>
+    <div class="pas"><button class="btn utama">Simpan</button><% if (edit) { %> <a class="btn" href="/promo/diskon">Batal</a><% } %></div>
+  </div>
+  <p class="kecil redup">Jika produk punya beberapa promo yang berlaku, kasir otomatis memakai potongan terbesar. Diskon manual kasir ditambahkan di atasnya.</p>
+</form>
+<div class="tabel-wrap"><table>
+  <thead><tr><th>Nama</th><th>Berlaku untuk</th><th>Diskon</th><th>Periode</th><th>Status</th><th></th></tr></thead>
+  <tbody><% rows.forEach(function (d) { %><tr><td><%= d.name %></td><td><%= d.product_name ? 'Produk: ' + d.product_name : 'Kategori: ' + d.category_name %></td>
+    <td><%= d.disc_type === 'persen' ? angka(d.value) + '%' : rupiah(d.value) %></td><td><%= waktu(d.starts_at) %> – <%= waktu(d.ends_at) %></td>
+    <td><span class="lencana <%= d.berlaku ? 'hijau' : '' %>"><%= d.berlaku ? 'berlaku' : (d.active ? 'di luar periode' : 'nonaktif') %></span></td>
+    <td><div class="aksi"><a class="btn kecil" href="?edit=<%= d.id %>">Ubah</a>
+      <form method="post" action="/promo/diskon/<%= d.id %>/hapus" data-konfirmasi="Hapus diskon ini?"><button class="btn kecil">Hapus</button></form></div></td></tr><% }) %>
+  <% if (!rows.length) { %><tr><td colspan="6" class="redup">Belum ada diskon.</td></tr><% } %></tbody>
+</table></div>
+<%- include('../partials/bawah') %>

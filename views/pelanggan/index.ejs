@@ -1,0 +1,28 @@
+<%- include('../partials/atas') %>
+<h1><%= judul %></h1>
+<% if (mode === 'semua') { %>
+<form class="panel" method="post" action="<%= edit ? '/pelanggan/' + edit.id : '/pelanggan' %>">
+  <div class="baris">
+    <div><label>Kode (kosong = otomatis)</label><input name="code" value="<%= edit ? edit.code : '' %>"></div>
+    <div><label>Nama</label><input name="name" value="<%= edit ? edit.name : '' %>" required></div>
+    <div><label>Telepon</label><input name="phone" value="<%= edit ? edit.phone || '' : '' %>"></div>
+    <div><label>Email</label><input type="email" name="email" value="<%= edit ? edit.email || '' : '' %>"></div>
+  </div>
+  <div class="baris" style="margin-top:.5rem">
+    <div style="flex:2"><label>Alamat</label><input name="address" value="<%= edit ? edit.address || '' : '' %>"></div>
+    <div><label>Batas piutang (0 = tanpa batas)</label><input name="credit_limit" inputmode="decimal" value="<%= edit ? edit.credit_limit : '0' %>"></div>
+    <div class="pas"><label class="cek"><input type="checkbox" name="is_member" value="1" <%= edit && edit.is_member ? 'checked' : '' %>> Member</label></div>
+    <div class="pas"><button class="btn utama"><%= edit ? 'Simpan' : 'Tambah' %></button><% if (edit) { %> <a class="btn" href="/pelanggan">Batal</a><% } %></div>
+  </div>
+</form>
+<% } %>
+<form method="get" class="baris" style="margin-bottom:.75rem"><div><input name="q" value="<%= q %>" placeholder="cari nama, kode, telepon"></div><div class="pas"><button class="btn">Cari</button></div></form>
+<div class="tabel-wrap"><table>
+  <thead><tr><th>Kode</th><th>Nama</th><th>Telepon</th><th>Member</th><th class="qty">Poin</th><% if (boleh('pelanggan.piutang')) { %><th class="uang">Piutang</th><% } %><th></th></tr></thead>
+  <tbody><% rows.forEach(function (c) { %><tr><td><%= c.code %></td><td><a href="/pelanggan/<%= c.id %>"><%= c.name %></a></td><td><%= c.phone || '' %></td>
+    <td><%= c.is_member ? '✓' : '' %></td><td class="qty"><%= angka(c.points) %></td>
+    <% if (boleh('pelanggan.piutang')) { %><td class="uang"><%= rupiah(c.receivable) %></td><% } %>
+    <td><a class="btn kecil" href="/pelanggan?edit=<%= c.id %>">Ubah</a></td></tr><% }) %>
+  <% if (!rows.length) { %><tr><td colspan="7" class="redup">Tidak ada data.</td></tr><% } %></tbody>
+</table></div>
+<%- include('../partials/bawah') %>

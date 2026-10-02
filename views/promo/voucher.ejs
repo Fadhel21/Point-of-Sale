@@ -1,0 +1,30 @@
+<%- include('../partials/atas') %>
+<h1>Voucher</h1>
+<form class="panel" method="post" action="/promo/voucher">
+  <% if (edit) { %><input type="hidden" name="id" value="<%= edit.id %>"><% } %>
+  <div class="baris">
+    <div><label>Kode</label><input name="code" value="<%= edit ? edit.code : '' %>" required style="text-transform:uppercase"></div>
+    <div class="pas"><label>Jenis</label><select name="disc_type"><option value="persen" <%= edit && edit.disc_type === 'persen' ? 'selected' : '' %>>Persen (%)</option><option value="nominal" <%= edit && edit.disc_type === 'nominal' ? 'selected' : '' %>>Nominal (Rp)</option></select></div>
+    <div><label>Nilai</label><input name="value" inputmode="decimal" value="<%= edit ? edit.value : '' %>" required></div>
+    <div><label>Maks. potongan (0 = tanpa batas)</label><input name="max_discount" inputmode="decimal" value="<%= edit ? edit.max_discount : '0' %>"></div>
+    <div><label>Min. belanja</label><input name="min_purchase" inputmode="decimal" value="<%= edit ? edit.min_purchase : '0' %>"></div>
+  </div>
+  <div class="baris" style="margin-top:.5rem">
+    <div><label>Kuota</label><input name="quota" inputmode="numeric" value="<%= edit ? edit.quota : '100' %>" required></div>
+    <div><label>Mulai</label><input type="datetime-local" name="starts_at" value="<%= edit ? tgl(edit.starts_at, 'YYYY-MM-DDTHH:mm') : '' %>" required></div>
+    <div><label>Selesai</label><input type="datetime-local" name="ends_at" value="<%= edit ? tgl(edit.ends_at, 'YYYY-MM-DDTHH:mm') : '' %>" required></div>
+    <div class="pas"><label class="cek"><input type="checkbox" name="active" value="1" <%= !edit || edit.active ? 'checked' : '' %>> Aktif</label></div>
+    <div class="pas"><button class="btn utama">Simpan</button><% if (edit) { %> <a class="btn" href="/promo/voucher">Batal</a><% } %></div>
+  </div>
+</form>
+<div class="tabel-wrap"><table>
+  <thead><tr><th>Kode</th><th>Diskon</th><th>Min. belanja</th><th class="qty">Terpakai</th><th>Periode</th><th>Status</th><th></th></tr></thead>
+  <tbody><% rows.forEach(function (v) { %><tr><td><b><%= v.code %></b></td>
+    <td><%= v.disc_type === 'persen' ? angka(v.value) + '%' : rupiah(v.value) %><%= Number(v.max_discount) ? ' (maks ' + rupiah(v.max_discount) + ')' : '' %></td>
+    <td><%= rupiah(v.min_purchase) %></td><td class="qty"><%= v.used %> / <%= v.quota %></td><td><%= waktu(v.starts_at) %> – <%= waktu(v.ends_at) %></td>
+    <td><span class="lencana <%= v.berlaku ? 'hijau' : '' %>"><%= v.berlaku ? 'berlaku' : 'tidak berlaku' %></span></td>
+    <td><div class="aksi"><a class="btn kecil" href="?edit=<%= v.id %>">Ubah</a>
+      <form method="post" action="/promo/voucher/<%= v.id %>/hapus" data-konfirmasi="Hapus voucher ini?"><button class="btn kecil">Hapus</button></form></div></td></tr><% }) %>
+  <% if (!rows.length) { %><tr><td colspan="7" class="redup">Belum ada voucher.</td></tr><% } %></tbody>
+</table></div>
+<%- include('../partials/bawah') %>

@@ -1,0 +1,17 @@
+<%- include('../partials/atas') %>
+<div class="kepala"><h1>Retur Penjualan</h1></div>
+<form class="panel baris" method="get">
+  <div><label>Dari</label><input type="date" name="from" value="<%= f.from %>"></div>
+  <div><label>Sampai</label><input type="date" name="to" value="<%= f.to %>"></div>
+  <div class="pas"><button class="btn utama">Tampilkan</button></div>
+</form>
+<p class="redup kecil">Untuk membuat retur, buka transaksi dari <a href="/transaksi">Riwayat Penjualan</a> lalu klik "Retur".</p>
+<div class="tabel-wrap"><table>
+  <thead><tr><th>Nomor</th><th>Waktu</th><th>Penjualan</th><th>Oleh</th><th>Disetujui</th><th>Alasan</th><th>Dana</th><th class="uang">Nilai</th></tr></thead>
+  <tbody><% rows.forEach(function (r) { %>
+    <tr><td><a href="/transaksi/retur/<%= r.id %>"><%= r.number %></a></td><td><%= waktu(r.created_at) %></td>
+      <td><a href="/transaksi/<%= r.sale_id %>"><%= r.sale_number %></a></td><td><%= r.user_name %></td><td><%= r.approver_name %></td>
+      <td><%= r.reason %></td><td><%= r.refund_method %></td><td class="uang"><%= rupiah(r.total) %></td></tr>
+  <% }) %><% if (!rows.length) { %><tr><td colspan="8" class="redup">Belum ada retur.</td></tr><% } %></tbody>
+</table></div>
+<%- include('../partials/bawah') %>

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Struk <%= s.number %></title>
+<% var lebar = String(struk.lebar) === '80' ? 80 : 58; %>
+<style>
+  @page { size: <%= lebar %>mm auto; margin: 0; }
+  body { margin: 0; font-family: "Courier New", monospace; font-size: <%= lebar === 80 ? '12px' : '10.5px' %>; color: #000; background: #fff; }
+  .struk { width: <%= lebar - 4 %>mm; margin: 0 auto; padding: 2mm; }
+  .tengah { text-align: center; }
+  .kanan { text-align: right; }
+  .garis { border-top: 1px dashed #000; margin: 4px 0; }
+  table { width: 100%; border-collapse: collapse; }
+  td { padding: 0; vertical-align: top; }
+  .besar { font-size: 1.2em; font-weight: bold; }
+  img.logo { max-width: 60%; max-height: 18mm; }
+  .tombol { text-align: center; margin: 8px; }
+  @media print { .tombol { display: none; } }
+</style>
+</head>
+<body>
+<div class="struk">
+  <div class="tengah">
+    <% if (struk.tampilLogo && toko.logo && !locals.email) { %><img class="logo" src="/uploads/<%= toko.logo %>" alt=""><br><% } %>
+    <b><%= toko.nama || 'Toko' %></b><br>
+    <%= s.outlet_name %><br>
+    <% if (s.outlet_address && s.outlet_address !== '-') { %><%= s.outlet_address %><br><% } %>
+    <% if (s.outlet_phone || toko.telepon) { %>Telp <%= s.outlet_phone || toko.telepon %><br><% } %>
+    <% if (toko.npwp) { %>NPWP <%= toko.npwp %><br><% } %>
+    <% if (struk.header) { %><%= struk.header %><br><% } %>
+  </div>
+  <div class="garis"></div>
+  <table>
+    <tr><td>No</td><td class="kanan"><%= s.number %></td></tr>
+    <tr><td>Tgl</td><td class="kanan"><%= waktu(s.created_at) %></td></tr>
+    <tr><td>Kasir</td><td class="kanan"><%= s.user_name %></td></tr>
+    <% if (s.customer_name) { %><tr><td>Plg</td><td class="kanan"><%= s.customer_name %></td></tr><% } %>
+  </table>
+  <% if (s.status === 'void') { %><div class="tengah besar">*** VOID ***</div><% } %>
+  <div class="garis"></div>
+  <table>
+  <% s.items.forEach(function (i) { %>
+    <tr><td colspan="2"><%= i.product_name %></td></tr>
+    <tr><td>&nbsp;<%= angka(i.qty) %> <%= i.unit_name || '' %> x <%= rupiah(i.price) %></td><td class="kanan"><%= rupiah((i.line_total)) %></td></tr>
+    <% if (Number(i.discount)) { %><tr><td>&nbsp;Diskon</td><td class="kanan">-<%= rupiah(i.discount) %></td></tr><% } %>
+    <% if (i.note) { %><tr><td colspan="2">&nbsp;* <%= i.note %></td></tr><% } %>
+  <% }) %>
+  </table>
+  <div class="garis"></div>
+  <table>
+    <tr><td>Subtotal</td><td class="kanan"><%= rupiah(s.subtotal) %></td></tr>
+    <% if (Number(s.trx_discount)) { %><tr><td>Diskon</td><td class="kanan">-<%= rupiah(s.trx_discount) %></td></tr><% } %>
+    <% if (Number(s.voucher_discount)) { %><tr><td>Voucher</td><td class="kanan">-<%= rupiah(s.voucher_discount) %></td></tr><% } %>
+    <% if (Number(s.points_value)) { %><tr><td>Poin</td><td class="kanan">-<%= rupiah(s.points_value) %></td></tr><% } %>
+    <% if (Number(s.tax)) { %><tr><td>PPN <%= angka(s.tax_rate) %>%<%= s.tax_inclusive ? ' (termasuk)' : '' %></td><td class="kanan"><%= rupiah(s.tax) %></td></tr><% } %>
+    <% if (Number(s.rounding)) { %><tr><td>Pembulatan</td><td class="kanan"><%= rupiah(s.rounding) %></td></tr><% } %>
+    <tr class="besar"><td>TOTAL</td><td class="kanan"><%= rupiah(s.total) %></td></tr>
+    <% s.payments.forEach(function (p) { %><tr><td><%= p.name || p.method_code %></td><td class="kanan"><%= rupiah(p.amount) %></td></tr><% }) %>
+    <tr><td>Kembali</td><td class="kanan"><%= rupiah(s.change_amount) %></td></tr>
+  </table>
+  <% if (s.customer_name && (Number(s.points_earned) || Number(s.points_used))) { %>
+    <div class="garis"></div>
+    <table>
+      <% if (Number(s.points_earned)) { %><tr><td>Poin didapat</td><td class="kanan"><%= angka(s.points_earned) %></td></tr><% } %>
+      <tr><td>Saldo poin</td><td class="kanan"><%= angka(s.customer_points) %></td></tr>
+    </table>
+  <% } %>
+  <div class="garis"></div>
+  <div class="tengah"><%= struk.footer || '' %></div>
+</div>
+<% if (!locals.email) { %>
+<div class="tombol"><button data-cetak>Cetak</button></div>
+<script src="/static/js/struk.js" data-otomatis="<%= cetak ? '1' : '' %>"></script>
+<% } %>
+</body>
+</html>

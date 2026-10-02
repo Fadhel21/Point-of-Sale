@@ -1,0 +1,37 @@
+<%- include('../partials/atas') %>
+<h1>Pajak & Pembulatan</h1>
+<form method="post" action="/pengaturan/pajak" style="max-width:720px">
+  <div class="panel">
+    <h2 style="margin-top:0">Pajak</h2>
+    <input type="hidden" name="pajak_aktif" value="0"><label class="cek"><input type="checkbox" name="pajak_aktif" value="1" <%= pajak.aktif ? 'checked' : '' %>> Kenakan pajak (PPN)</label>
+    <div class="baris" style="margin-top:.5rem">
+      <div><label>Tarif (%)</label><input name="tarif" inputmode="decimal" value="<%= pajak.tarif || '11' %>"></div>
+      <div><label>Harga jual</label><select name="termasuk">
+        <option value="0" <%= !pajak.termasuk ? 'selected' : '' %>>Belum termasuk pajak (pajak ditambahkan)</option>
+        <option value="1" <%= pajak.termasuk ? 'selected' : '' %>>Sudah termasuk pajak</option></select></div>
+    </div>
+  </div>
+  <div class="panel">
+    <h2 style="margin-top:0">Pembulatan tunai</h2>
+    <input type="hidden" name="bulat_aktif" value="0"><label class="cek"><input type="checkbox" name="bulat_aktif" value="1" <%= pembulatan.aktif ? 'checked' : '' %>> Bulatkan total bila dibayar tunai</label>
+    <div class="baris" style="margin-top:.5rem">
+      <div><label>Kelipatan (Rp)</label><input name="kelipatan" inputmode="decimal" value="<%= pembulatan.kelipatan || '100' %>"></div>
+      <div><label>Arah</label><select name="mode">
+        <% [['terdekat','Terdekat'],['bawah','Ke bawah'],['atas','Ke atas']].forEach(function (m) { %><option value="<%= m[0] %>" <%= pembulatan.mode === m[0] ? 'selected' : '' %>><%= m[1] %></option><% }) %></select></div>
+    </div>
+  </div>
+  <div class="panel">
+    <h2 style="margin-top:0">Poin member</h2>
+    <input type="hidden" name="poin_aktif" value="0"><label class="cek"><input type="checkbox" name="poin_aktif" value="1" <%= poin.aktif ? 'checked' : '' %>> Aktifkan poin</label>
+    <div class="baris" style="margin-top:.5rem">
+      <div><label>Setiap belanja (Rp) dapat 1 poin</label><input name="belanjaPerPoin" inputmode="decimal" value="<%= poin.belanjaPerPoin || '10000' %>"></div>
+      <div><label>Nilai 1 poin saat dipakai (Rp)</label><input name="nilaiPoin" inputmode="decimal" value="<%= poin.nilaiPoin || '100' %>"></div>
+    </div>
+  </div>
+  <div class="panel">
+    <h2 style="margin-top:0">Stok</h2>
+    <input type="hidden" name="boleh_minus" value="0"><label class="cek"><input type="checkbox" name="boleh_minus" value="1" <%= stok.bolehMinus ? 'checked' : '' %>> Izinkan penjualan walau stok tidak cukup (stok minus)</label>
+  </div>
+  <button class="btn utama">Simpan</button>
+</form>
+<%- include('../partials/bawah') %>

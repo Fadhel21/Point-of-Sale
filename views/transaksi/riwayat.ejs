@@ -1,0 +1,32 @@
+<%- include('../partials/atas') %>
+<div class="kepala"><h1>Riwayat Penjualan</h1></div>
+<form class="panel baris" method="get">
+  <div><label>Dari</label><input type="date" name="from" value="<%= f.from %>"></div>
+  <div><label>Sampai</label><input type="date" name="to" value="<%= f.to %>"></div>
+  <div><label>No. struk</label><input name="number" value="<%= f.number || '' %>"></div>
+  <div><label>Metode bayar</label><select name="method"><option value="">Semua</option>
+    <% metode.forEach(function (m) { %><option value="<%= m.code %>" <%= f.method === m.code ? 'selected' : '' %>><%= m.name %></option><% }) %></select></div>
+  <% if (kasir.length) { %>
+  <div><label>Kasir</label><select name="user_id"><option value="">Semua</option>
+    <% kasir.forEach(function (k) { %><option value="<%= k.id %>" <%= String(f.userId) === String(k.id) ? 'selected' : '' %>><%= k.name %></option><% }) %></select></div>
+  <div><label>Outlet</label><select name="outlet_id">
+    <% outlets.forEach(function (o) { %><option value="<%= o.id %>" <%= String(f.outletId) === String(o.id) ? 'selected' : '' %>><%= o.name %></option><% }) %></select></div>
+  <% } %>
+  <div><label>Status</label><select name="status"><option value="">Semua</option>
+    <option value="selesai" <%= f.status === 'selesai' ? 'selected' : '' %>>Selesai</option><option value="void" <%= f.status === 'void' ? 'selected' : '' %>>Void</option></select></div>
+  <div class="pas"><button class="btn utama">Tampilkan</button></div>
+</form>
+<p class="redup"><%= total %> transaksi · Total selesai <b><%= rupiah(sum) %></b></p>
+<div class="tabel-wrap"><table>
+  <thead><tr><th>Waktu</th><th>No. Struk</th><th>Kasir</th><th>Pelanggan</th><th>Metode</th><th class="uang">Total</th><th>Status</th></tr></thead>
+  <tbody>
+  <% rows.forEach(function (r) { %>
+    <tr><td><%= waktu(r.created_at) %></td><td><a href="/transaksi/<%= r.id %>"><%= r.number %></a></td><td><%= r.user_name %></td>
+      <td><%= r.customer_name || '-' %></td><td><%= r.methods %></td><td class="uang"><%= rupiah(r.total) %></td>
+      <td><% if (r.status === 'void') { %><span class="lencana merah">void</span><% } else if (r.ada_retur) { %><span class="lencana kuning">ada retur</span><% } else { %><span class="lencana hijau">selesai</span><% } %></td></tr>
+  <% }) %>
+  <% if (!rows.length) { %><tr><td colspan="7" class="redup">Tidak ada transaksi.</td></tr><% } %>
+  </tbody>
+</table></div>
+<%- include('../partials/halaman', { total: total, perPage: 50 }) %>
+<%- include('../partials/bawah') %>

@@ -1,0 +1,77 @@
+<%- include('../partials/atas') %>
+<div class="kepala">
+  <h1>Transaksi <%= s.number %> <% if (s.status === 'void') { %><span class="lencana merah">VOID</span><% } %></h1>
+  <div class="aksi">
+    <a class="btn" href="/transaksi/<%= s.id %>/struk?cetak=1&ulang=1" target="_blank">Cetak Ulang Struk</a>
+    <% if (s.status === 'selesai' && boleh('transaksi.retur')) { %><a class="btn" href="/transaksi/<%= s.id %>/retur">Retur</a><% } %>
+  </div>
+</div>
+<div class="grid2">
+  <div class="panel">
+    <table class="ringkas">
+      <tr><td>Waktu</td><td><%= waktu(s.created_at) %></td></tr>
+      <tr><td>Outlet</td><td><%= s.outlet_name %></td></tr>
+      <tr><td>Kasir</td><td><%= s.user_name %></td></tr>
+      <tr><td>Pelanggan</td><td><%= s.customer_name ? s.customer_name + ' (' + s.customer_code + ')' : 'Umum' %></td></tr>
+      <% if (s.note) { %><tr><td>Catatan</td><td><%= s.note %></td></tr><% } %>
+      <% if (s.status === 'void') { %>
+        <tr><td>Void oleh</td><td><%= s.void_user_name %> · disetujui <%= s.void_approver_name %></td></tr>
+        <tr><td>Waktu void</td><td><%= waktu(s.void_at) %></td></tr>
+        <tr><td>Alasan</td><td><%= s.void_reason %></td></tr>
+      <% } %>
+    </table>
+  </div>
+  <div class="panel">
+    <table class="ringkas">
+      <tr><td>Subtotal</td><td><%= rupiah(s.subtotal) %></td></tr>
+      <% if (Number(s.trx_discount)) { %><tr><td>Diskon transaksi</td><td>-<%= rupiah(s.trx_discount) %></td></tr><% } %>
+      <% if (Number(s.voucher_discount)) { %><tr><td>Voucher <%= s.voucher_code %></td><td>-<%= rupiah(s.voucher_discount) %></td></tr><% } %>
+      <% if (Number(s.points_value)) { %><tr><td>Poin (<%= angka(s.points_used) %>)</td><td>-<%= rupiah(s.points_value) %></td></tr><% } %>
+      <% if (Number(s.tax)) { %><tr><td>Pajak <%= angka(s.tax_rate) %>% <%= s.tax_inclusive ? '(termasuk)' : '' %></td><td><%= rupiah(s.tax) %></td></tr><% } %>
+      <% if (Number(s.rounding)) { %><tr><td>Pembulatan</td><td><%= rupiah(s.rounding) %></td></tr><% } %>
+      <tr class="tebal"><td>Total</td><td><%= rupiah(s.total) %></td></tr>
+      <% s.payments.forEach(function (p) { %><tr><td><%= p.name || p.method_code %><%= p.reference ? ' (' + p.reference + ')' : '' %></td><td><%= rupiah(p.amount) %></td></tr><% }) %>
+      <tr><td>Kembalian</td><td><%= rupiah(s.change_amount) %></td></tr>
+      <% if (Number(s.points_earned)) { %><tr><td>Poin didapat</td><td><%= angka(s.points_earned) %></td></tr><% } %>
+      <% if (lihatLaba) { %><tr class="redup"><td>HPP · Laba kotor</td><td><%= rupiah(s.cost_total) %> · <%= rupiah(s.laba_kotor) %></td></tr><% } %>
+    </table>
+  </div>
+</div>
+<div class="tabel-wrap panel"><table>
+  <thead><tr><th>Produk</th><th class="qty">Qty</th><th class="uang">Harga</th><th class="uang">Diskon</th><th class="uang">Subtotal</th><th class="qty">Diretur</th></tr></thead>
+  <tbody><% s.items.forEach(function (i) { %>
+    <tr><td><%= i.product_name %> <span class="redup kecil"><%= i.sku %></span><% if (i.note) { %><div class="kecil redup"><%= i.note %></div><% } %></td>
+      <td class="qty"><%= angka(i.qty) %> <%= i.unit_name || '' %></td><td class="uang"><%= rupiah(i.price) %></td>
+      <td class="uang"><%= Number(i.discount) ? '-' + rupiah(i.discount) : '' %></td><td class="uang"><%= rupiah(i.line_total) %></td>
+      <td class="qty"><%= Number(i.returned_qty) ? angka(i.returned_qty) : '' %></td></tr>
+  <% }) %></tbody>
+</table></div>
+
+<% if (s.returns.length) { %>
+<h2>Retur</h2>
+<div class="tabel-wrap"><table><thead><tr><th>Nomor</th><th>Waktu</th><th>Oleh</th><th>Alasan</th><th class="uang">Nilai</th></tr></thead><tbody>
+<% s.returns.forEach(function (r) { %><tr><td><a href="/transaksi/retur/<%= r.id %>"><%= r.number %></a></td><td><%= waktu(r.created_at) %></td><td><%= r.user_name %></td><td><%= r.reason %></td><td class="uang"><%= rupiah(r.total) %></td></tr><% }) %>
+</tbody></table></div>
+<% } %>
+
+<div class="grid2" style="margin-top:1rem">
+  <form class="panel" method="post" action="/transaksi/<%= s.id %>/email">
+    <h2>Kirim struk lewat email</h2>
+    <div class="baris"><input type="email" name="email" value="<%= s.customer_email || '' %>" placeholder="email@pelanggan.com" required><button class="btn pas">Kirim</button></div>
+  </form>
+  <% if (s.status === 'selesai' && boleh('transaksi.void')) { %>
+  <form class="panel" method="post" action="/transaksi/<%= s.id %>/void" data-konfirmasi="Void transaksi ini? Stok, poin, dan voucher akan dikembalikan.">
+    <h2>Void transaksi</h2>
+    <p class="kecil redup">Hanya bisa selama shift transaksi masih terbuka. Setelah itu gunakan retur.</p>
+    <div class="field"><label>Alasan</label><input name="reason" required minlength="3"></div>
+    <% if (!boleh('transaksi.setujui')) { %>
+      <div class="baris">
+        <div><label>Username supervisor</label><input name="supervisor_username" required autocomplete="off"></div>
+        <div><label>Password supervisor</label><input type="password" name="supervisor_password" required autocomplete="new-password"></div>
+      </div>
+    <% } %>
+    <button class="btn bahaya" style="margin-top:.5rem">Void</button>
+  </form>
+  <% } %>
+</div>
+<%- include('../partials/bawah') %>

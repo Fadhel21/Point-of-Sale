@@ -1,0 +1,23 @@
+<%- include('../partials/atas') %>
+<div class="kepala no-print"><h1>Cetak Label Barcode</h1><% if (label.length) { %><button class="btn utama" data-cetak>Cetak <%= label.length %> label</button><% } %></div>
+<form class="panel no-print" method="get">
+  <div class="baris"><div><label>Cari produk</label><input name="q" value="<%= q %>"></div><div class="pas"><button class="btn">Cari</button></div></div>
+  <div class="tabel-wrap" style="margin-top:.75rem"><table>
+    <thead><tr><th>Produk</th><th>Kode</th><th class="uang">Harga</th><th class="qty">Jumlah label</th></tr></thead>
+    <tbody><% rows.forEach(function (p) { %>
+      <tr><td><%= p.name %><%= p.variant_name ? ' - ' + p.variant_name : '' %></td><td><%= p.barcode || p.sku %></td><td class="uang"><%= rupiah(p.sell_price) %></td>
+        <td class="qty"><input class="qty-input" name="jumlah[<%= p.id %>]" value="<%= jumlah[p.id] || '' %>" inputmode="numeric" placeholder="0"></td></tr>
+    <% }) %></tbody>
+  </table></div>
+  <div class="aksi" style="margin-top:.75rem"><button class="btn utama">Buat Label</button></div>
+</form>
+<div class="label-grid">
+  <% label.forEach(function (l) { %>
+    <div class="label-item">
+      <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><b><%= l.p.name %><%= l.p.variant_name ? ' ' + l.p.variant_name : '' %></b></div>
+      <%- l.gambar %>
+      <div><%= l.kode %> · <b><%= rupiah(l.p.sell_price) %></b></div>
+    </div>
+  <% }) %>
+</div>
+<%- include('../partials/bawah') %>

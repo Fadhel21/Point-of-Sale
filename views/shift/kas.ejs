@@ -1,0 +1,19 @@
+<%- include('../partials/atas') %>
+<h1>Kas Masuk & Keluar</h1>
+<% if (!s) { %>
+  <div class="panel">Buka shift dulu di <a href="/shift">Buka / Tutup Shift</a>.</div>
+<% } else { %>
+  <form class="panel baris" method="post" action="/shift/kas">
+    <div class="pas"><label>Jenis</label><select name="direction"><option value="masuk">Kas masuk</option><option value="keluar">Kas keluar</option></select></div>
+    <div><label>Jumlah (Rp)</label><input name="amount" inputmode="decimal" required></div>
+    <div style="flex:2"><label>Keterangan</label><input name="note" required maxlength="200"></div>
+    <div class="pas"><button class="btn utama">Simpan</button></div>
+  </form>
+  <p>Uang tunai seharusnya di laci: <b><%= rupiah(r.expected_cash) %></b></p>
+  <div class="tabel-wrap"><table>
+    <thead><tr><th>Waktu</th><th>Jenis</th><th>Keterangan</th><th class="uang">Jumlah</th></tr></thead>
+    <tbody><% kas.forEach(function (k) { %><tr><td><%= waktu(k.created_at) %></td><td><span class="lencana <%= k.direction === 'masuk' ? 'hijau' : 'merah' %>"><%= k.direction %></span></td><td><%= k.note %></td><td class="uang"><%= rupiah(k.amount) %></td></tr><% }) %>
+    <% if (!kas.length) { %><tr><td colspan="4" class="redup">Belum ada kas masuk/keluar di shift ini.</td></tr><% } %></tbody>
+  </table></div>
+<% } %>
+<%- include('../partials/bawah') %>

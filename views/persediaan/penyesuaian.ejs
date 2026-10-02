@@ -1,0 +1,25 @@
+<%- include('../partials/atas') %>
+<h1>Penyesuaian Stok</h1>
+<form class="panel" method="post" action="/persediaan/penyesuaian" x-data="pilihProduk">
+  <div class="baris">
+    <div style="flex:2;position:relative"><label>Produk</label>
+      <input x-model="q" @input.debounce.300ms="cari()" placeholder="cari produk" autocomplete="off" required>
+      <input type="hidden" name="product_id" :value="pilih ? pilih.id : ''">
+      <div class="hasil-cari" x-show="hasil.length" @click.outside="hasil = []">
+        <template x-for="r in hasil" :key="r.id"><div @click="ambil(r)"><span x-text="r.name"></span><span class="redup kecil" x-text="r.sku + ' · stok ' + (r.stok || 0)"></span></div></template>
+      </div>
+    </div>
+    <div class="pas"><label>Arah</label><select name="arah"><option value="tambah">Tambah (+)</option><option value="kurang">Kurangi (−)</option></select></div>
+    <div><label>Jumlah (satuan dasar)</label><input name="qty" inputmode="decimal" required></div>
+    <div style="flex:2"><label>Alasan</label><input name="reason" required minlength="3" placeholder="rusak, hilang, kedaluwarsa, salah input, ..."></div>
+    <div class="pas"><button class="btn utama">Simpan</button></div>
+  </div>
+  <p class="kecil redup" x-show="pilih" x-text="pilih ? 'Stok saat ini: ' + (pilih.stok || 0) : ''"></p>
+</form>
+<div class="tabel-wrap"><table>
+  <thead><tr><th>Nomor</th><th>Waktu</th><th>Produk</th><th class="qty">Perubahan</th><th>Alasan</th><th>Oleh</th></tr></thead>
+  <tbody><% rows.forEach(function (r) { %><tr><td><%= r.number %></td><td><%= waktu(r.created_at) %></td><td><%= r.product_name %> <span class="redup kecil"><%= r.sku %></span></td>
+    <td class="qty"><%= Number(r.qty_change) > 0 ? '+' : '' %><%= angka(r.qty_change) %></td><td><%= r.reason %></td><td><%= r.user_name %></td></tr><% }) %>
+  <% if (!rows.length) { %><tr><td colspan="6" class="redup">Belum ada penyesuaian.</td></tr><% } %></tbody>
+</table></div>
+<%- include('../partials/bawah') %>

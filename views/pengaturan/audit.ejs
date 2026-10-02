@@ -1,0 +1,20 @@
+<%- include('../partials/atas') %>
+<h1>Log Audit</h1>
+<form class="panel baris" method="get">
+  <div><label>Dari</label><input type="date" name="from" value="<%= f.from || '' %>"></div>
+  <div><label>Sampai</label><input type="date" name="to" value="<%= f.to || '' %>"></div>
+  <div><label>Pengguna</label><select name="user_id"><option value="">Semua</option>
+    <% kasir.forEach(function (k) { %><option value="<%= k.id %>" <%= String(f.user_id) === String(k.id) ? 'selected' : '' %>><%= k.name %></option><% }) %></select></div>
+  <div><label>Aksi</label><input name="action" value="<%= f.action || '' %>" placeholder="mis. void, login, harga"></div>
+  <div class="pas"><button class="btn utama">Tampilkan</button></div>
+</form>
+<div class="tabel-wrap"><table>
+  <thead><tr><th>Waktu</th><th>Pengguna</th><th>Aksi</th><th>Objek</th><th>Data</th><th>IP</th></tr></thead>
+  <tbody><% rows.forEach(function (a) { %><tr><td><%= waktu(a.created_at) %></td><td><%= a.user_name || '-' %></td><td><%= a.action %></td>
+    <td><%= a.entity ? a.entity + ' #' + a.entity_id : '' %></td><td class="kecil" style="max-width:420px;word-break:break-all"><%= a.data ? JSON.stringify(a.data) : '' %></td><td class="kecil"><%= a.ip %></td></tr><% }) %>
+  <% if (!rows.length) { %><tr><td colspan="6" class="redup">Tidak ada log.</td></tr><% } %></tbody>
+</table></div>
+<div class="aksi" style="margin-top:.75rem"><% var hal = parseInt(query.page || '1', 10); %>
+  <% if (hal > 1) { %><a class="btn kecil" href="?<%= new URLSearchParams(Object.assign({}, f, { page: hal - 1 })).toString() %>">← Sebelumnya</a><% } %>
+  <% if (rows.length === 50) { %><a class="btn kecil" href="?<%= new URLSearchParams(Object.assign({}, f, { page: hal + 1 })).toString() %>">Berikutnya →</a><% } %></div>
+<%- include('../partials/bawah') %>

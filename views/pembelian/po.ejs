@@ -1,0 +1,11 @@
+<%- include('../partials/atas') %>
+<div class="kepala"><h1>Pesanan Pembelian (PO)</h1><a class="btn utama" href="/pembelian/po/baru">+ PO Baru</a></div>
+<form class="baris" method="get" style="margin-bottom:.75rem"><div class="pas"><select name="status" data-autosubmit><option value="">Semua status</option>
+  <% ['dipesan','sebagian','selesai','batal'].forEach(function (s) { %><option value="<%= s %>" <%= status === s ? 'selected' : '' %>><%= s %></option><% }) %></select></div></form>
+<div class="tabel-wrap"><table>
+  <thead><tr><th>Nomor</th><th>Tanggal</th><th>Pemasok</th><th class="uang">Total</th><th>Status</th></tr></thead>
+  <tbody><% rows.forEach(function (p) { %><tr><td><a href="/pembelian/po/<%= p.id %>"><%= p.number %></a></td><td><%= tgl(p.created_at) %></td><td><%= p.supplier_name %></td>
+    <td class="uang"><%= rupiah(p.total) %></td><td><span class="lencana <%= { selesai: 'hijau', batal: 'merah', sebagian: 'kuning' }[p.status] || '' %>"><%= p.status %></span></td></tr><% }) %>
+  <% if (!rows.length) { %><tr><td colspan="5" class="redup">Belum ada PO.</td></tr><% } %></tbody>
+</table></div>
+<%- include('../partials/bawah') %>

@@ -1,0 +1,20 @@
+<%- include('../partials/atas') %>
+<h1>Hutang Pemasok</h1>
+<div class="grid2">
+  <div>
+    <h2>Saldo per pemasok</h2>
+    <table><thead><tr><th>Pemasok</th><th>Jatuh tempo terdekat</th><th class="uang">Saldo</th></tr></thead><tbody>
+      <% ringkas.forEach(function (s) { %><tr><td><%= s.name %></td><td><%= s.jatuh_tempo ? tgl(s.jatuh_tempo) : '-' %></td><td class="uang"><%= rupiah(s.payable) %></td></tr><% }) %>
+      <% if (!ringkas.length) { %><tr><td colspan="3" class="redup">Tidak ada hutang.</td></tr><% } %></tbody></table>
+  </div>
+  <div>
+    <h2>Faktur belum lunas (outlet aktif)</h2>
+    <table><thead><tr><th>Nomor</th><th>Pemasok</th><th>Jatuh tempo</th><th class="uang">Sisa</th><th></th></tr></thead><tbody>
+      <% faktur.forEach(function (g) { var lewat = g.due_date && new Date(g.due_date) < new Date(); %>
+        <tr><td><a href="/pembelian/penerimaan/<%= g.id %>"><%= g.number %></a></td><td><%= g.supplier_name %></td>
+          <td><% if (g.due_date) { %><span class="<%= lewat ? 'lencana merah' : '' %>"><%= tgl(g.due_date) %></span><% } else { %>-<% } %></td>
+          <td class="uang"><%= rupiah(g.sisa) %></td><td><a class="btn kecil" href="/pembelian/penerimaan/<%= g.id %>">Bayar</a></td></tr>
+      <% }) %><% if (!faktur.length) { %><tr><td colspan="5" class="redup">Semua faktur lunas.</td></tr><% } %></tbody></table>
+  </div>
+</div>
+<%- include('../partials/bawah') %>

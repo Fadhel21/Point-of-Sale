@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="id">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Masuk · POS</title>
+<link rel="stylesheet" href="/static/css/app.css"></head>
+<body>
+  <form class="login panel" method="post" action="/login">
+    <h1>Masuk ke POS</h1>
+    <% if (pesan) { %><div class="notif error"><%= pesan %></div><% } %>
+    <input type="hidden" name="next" value="<%= next %>">
+    <div class="field"><label for="u">Username</label><input id="u" name="username" autocomplete="username" required autofocus></div>
+    <div class="field"><label for="p">Password</label><input id="p" type="password" name="password" autocomplete="current-password" required></div>
+    <button class="btn utama" style="width:100%;justify-content:center">Masuk</button>
+  </form>
+</body>
+</html>

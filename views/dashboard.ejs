@@ -1,0 +1,45 @@
+<%- include('partials/atas') %>
+<div class="kepala">
+  <h1>Dashboard — <%= outletAktif ? outletAktif.name : '' %></h1>
+  <% if (boleh('kasir')) { %><a class="btn utama" href="/kasir">Buka Kasir</a><% } %>
+</div>
+<% if (boleh('shift') && !shiftSaya) { %><div class="notif error">Anda belum membuka shift. <a href="/shift">Buka shift</a> sebelum berjualan.</div><% } %>
+<div class="grid4">
+  <div class="stat"><div class="label">Penjualan hari ini</div><div class="nilai"><%= rupiah(hariIni.total) %></div></div>
+  <div class="stat"><div class="label">Jumlah transaksi</div><div class="nilai"><%= hariIni.jml %></div></div>
+  <div class="stat"><div class="label">Rata-rata transaksi</div><div class="nilai"><%= rupiah(hariIni.rata) %></div></div>
+  <% if (hariIni.laba !== null) { %><div class="stat"><div class="label">Laba kotor hari ini</div><div class="nilai"><%= rupiah(hariIni.laba) %></div></div><% } %>
+</div>
+<div class="grid2" style="margin-top:1rem">
+  <div class="panel">
+    <div class="kepala" style="margin-bottom:.5rem"><h2 style="margin:0">Penjualan <%= hari %> hari</h2>
+      <div class="aksi"><a class="btn kecil <%= hari === 7 ? 'utama' : '' %>" href="?hari=7">7 hari</a><a class="btn kecil <%= hari === 30 ? 'utama' : '' %>" href="?hari=30">30 hari</a></div></div>
+    <canvas id="grafik" height="220" data-label="<%= JSON.stringify(grafik.map(function (g) { return g.tgl.slice(5); })) %>" data-nilai="<%= JSON.stringify(grafik.map(function (g) { return g.total; })) %>"></canvas>
+  </div>
+  <div class="panel">
+    <h2 style="margin-top:0">Produk terlaris (<%= hari %> hari)</h2>
+    <table><thead><tr><th>Produk</th><th class="qty">Qty</th><th class="uang">Penjualan</th></tr></thead><tbody>
+      <% terlaris.forEach(function (t) { %><tr><td><%= t.nama %></td><td class="qty"><%= angka(t.qty) %></td><td class="uang"><%= rupiah(t.total) %></td></tr><% }) %>
+      <% if (!terlaris.length) { %><tr><td colspan="3" class="redup">Belum ada penjualan.</td></tr><% } %></tbody></table>
+  </div>
+</div>
+<div class="grid2">
+  <% if (menipis.length || boleh('persediaan')) { %>
+  <div class="panel">
+    <h2 style="margin-top:0">Stok menipis</h2>
+    <table><thead><tr><th>Produk</th><th class="qty">Stok</th><th class="qty">Minimum</th></tr></thead><tbody>
+      <% menipis.forEach(function (m) { %><tr><td><%= m.name %><%= m.variant_name ? ' - ' + m.variant_name : '' %></td><td class="qty"><span class="lencana merah"><%= angka(m.qty) %></span></td><td class="qty"><%= angka(m.min_stock) %></td></tr><% }) %>
+      <% if (!menipis.length) { %><tr><td colspan="3" class="redup">Semua stok aman.</td></tr><% } %></tbody></table>
+    <% if (menipis.length) { %><a class="kecil" href="/persediaan/minimum">Lihat semua →</a><% } %>
+  </div>
+  <% } %>
+  <div class="panel">
+    <h2 style="margin-top:0">Shift yang sedang buka</h2>
+    <table><tbody>
+      <% shiftBuka.forEach(function (s) { %><tr><td><%= s.user_name %></td><td>sejak <%= waktu(s.opened_at) %></td></tr><% }) %>
+      <% if (!shiftBuka.length) { %><tr><td class="redup">Tidak ada shift terbuka.</td></tr><% } %></tbody></table>
+  </div>
+</div>
+<script src="/static/js/chart.umd.js" defer></script>
+<script src="/static/js/dashboard.js" defer></script>
+<%- include('partials/bawah') %>

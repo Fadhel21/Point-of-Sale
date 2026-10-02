@@ -1,0 +1,24 @@
+<%- include('../partials/atas') %>
+<h1>Cadangan Data</h1>
+<% if (galat) { %><div class="notif error"><%= galat %></div><% } %>
+<div class="grid2">
+  <form class="panel" method="post" action="/pengaturan/cadangan">
+    <h2 style="margin-top:0">Cadangan otomatis</h2>
+    <input type="hidden" name="aktif" value="0"><label class="cek"><input type="checkbox" name="aktif" value="1" <%= s.aktif ? 'checked' : '' %>> Aktif (dijalankan proses worker)</label>
+    <div class="baris" style="margin-top:.5rem">
+      <div><label>Jam</label><input type="time" name="jam" value="<%= s.jam || '23:30' %>"></div>
+      <div><label>Simpan selama (hari)</label><input name="simpanHari" inputmode="numeric" value="<%= s.simpanHari || '14' %>"></div>
+    </div>
+    <button class="btn utama" style="margin-top:.5rem">Simpan</button>
+  </form>
+  <form class="panel" method="post" action="/pengaturan/cadangan/jalankan">
+    <h2 style="margin-top:0">Cadangan manual</h2>
+    <p class="kecil redup">Membuat file <code>.dump</code> dengan pg_dump. Pulihkan dengan pg_restore (lihat README).</p>
+    <button class="btn">Buat Cadangan Sekarang</button>
+  </form>
+</div>
+<table><thead><tr><th>File</th><th>Waktu</th><th class="qty">Ukuran</th><th></th></tr></thead><tbody>
+<% daftar.forEach(function (f) { %><tr><td><%= f.nama %></td><td><%= waktu(f.waktu) %></td><td class="qty"><%= (f.ukuran / 1048576).toFixed(2) %> MB</td>
+  <td><a class="btn kecil" href="/pengaturan/cadangan/unduh/<%= f.nama %>">Unduh</a></td></tr><% }) %>
+<% if (!daftar.length) { %><tr><td colspan="4" class="redup">Belum ada cadangan.</td></tr><% } %></tbody></table>
+<%- include('../partials/bawah') %>

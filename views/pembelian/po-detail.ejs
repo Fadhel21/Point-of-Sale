@@ -1,0 +1,18 @@
+<%- include('../partials/atas') %>
+<div class="kepala"><h1>PO <%= po.number %> <span class="lencana"><%= po.status %></span></h1>
+  <div class="aksi no-print">
+    <button class="btn" data-cetak>Cetak</button>
+    <% if (['dipesan','sebagian'].includes(po.status)) { %><a class="btn utama" href="/pembelian/penerimaan/baru?po=<%= po.id %>">Terima Barang</a><% } %>
+    <% if (po.status === 'dipesan') { %><form method="post" action="/pembelian/po/<%= po.id %>/batal" data-konfirmasi="Batalkan PO ini?"><button class="btn bahaya">Batalkan</button></form><% } %>
+  </div></div>
+<div class="panel"><table class="ringkas">
+  <tr><td>Pemasok</td><td><%= po.supplier_name %><%= po.supplier_phone ? ' · ' + po.supplier_phone : '' %></td></tr>
+  <tr><td>Kirim ke</td><td><%= po.outlet_name %></td></tr>
+  <tr><td>Tanggal</td><td><%= tgl(po.created_at) %> oleh <%= po.user_name %></td></tr>
+  <% if (po.note) { %><tr><td>Catatan</td><td><%= po.note %></td></tr><% } %>
+</table></div>
+<table><thead><tr><th>SKU</th><th>Produk</th><th class="qty">Dipesan</th><th class="qty">Diterima</th><th class="uang">Harga</th></tr></thead>
+<tbody><% po.items.forEach(function (i) { %><tr><td><%= i.sku %></td><td><%= i.name %></td><td class="qty"><%= angka(i.qty) %> <%= i.unit_name || '' %></td>
+  <td class="qty"><%= angka(i.received_qty) %></td><td class="uang"><%= rupiah(i.price) %></td></tr><% }) %></tbody>
+<tfoot><tr><td colspan="4">Total</td><td class="uang"><%= rupiah(po.total) %></td></tr></tfoot></table>
+<%- include('../partials/bawah') %>

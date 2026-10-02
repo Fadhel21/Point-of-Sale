@@ -1,0 +1,16 @@
+<%- include('../partials/atas') %>
+<div class="kepala"><h1>Retur <%= r.number %></h1><button class="btn no-print" data-cetak>Cetak</button></div>
+<div class="panel"><table class="ringkas">
+  <tr><td>Penjualan</td><td><a href="/transaksi/<%= r.sale_id %>"><%= r.sale_number %></a></td></tr>
+  <tr><td>Waktu</td><td><%= waktu(r.created_at) %></td></tr>
+  <tr><td>Outlet</td><td><%= r.outlet_name %></td></tr>
+  <tr><td>Oleh / disetujui</td><td><%= r.user_name %> / <%= r.approver_name %></td></tr>
+  <tr><td>Alasan</td><td><%= r.reason %></td></tr>
+  <tr><td>Dana dikembalikan via</td><td><%= r.refund_method %></td></tr>
+  <tr class="tebal"><td>Total dikembalikan</td><td><%= rupiah(r.total) %></td></tr>
+</table></div>
+<div class="tabel-wrap"><table>
+  <thead><tr><th>Produk</th><th class="qty">Qty</th><th class="uang">Nilai</th></tr></thead>
+  <tbody><% r.items.forEach(function (i) { %><tr><td><%= i.product_name %></td><td class="qty"><%= angka(i.qty) %> <%= i.unit_name || '' %></td><td class="uang"><%= rupiah(i.amount) %></td></tr><% }) %></tbody>
+</table></div>
+<%- include('../partials/bawah') %>

@@ -1,9 +1,6 @@
 // Produk, varian, satuan bertingkat, impor/ekspor CSV
-const fs = require('fs');
-const path = require('path');
-const { v4: uuidv4 } = require('uuid');
 const db = require('../config/db');
-const config = require('../config');
+const { simpanGambar } = require('./uploads');
 const { AppError } = require('../lib/errors');
 const { toSen, toQty, senToStr, qtyToStr } = require('../lib/money');
 const { parseCsv, toCsv } = require('../lib/csv');
@@ -56,19 +53,6 @@ async function get(id, client) {
   return prod;
 }
 
-/** Simpan foto dari data URL (base64) yang dikirim browser; tanpa library upload. */
-function simpanFoto(dataUrl) {
-  if (!dataUrl) return null;
-  const m = /^data:image\/(png|jpeg|webp);base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl);
-  if (!m) throw new AppError('Format foto harus PNG, JPG, atau WEBP.');
-  const buf = Buffer.from(m[2], 'base64');
-  if (buf.length > 2 * 1024 * 1024) throw new AppError('Ukuran foto maksimal 2 MB.');
-  const nama = `produk-${uuidv4()}.${m[1] === 'jpeg' ? 'jpg' : m[1]}`;
-  fs.mkdirSync(config.uploadDir, { recursive: true });
-  fs.writeFileSync(path.join(config.uploadDir, nama), buf);
-  return nama;
-}
-
 function normalisasi(d) {
   if (!d.name || !String(d.name).trim()) throw new AppError('Nama produk wajib diisi.');
   if (!d.sku || !String(d.sku).trim()) throw new AppError('Kode/SKU wajib diisi.');
@@ -106,7 +90,7 @@ function pesanUnik(e) {
  */
 async function save(id, d, { canSeeCost = true } = {}) {
   const n = normalisasi(d);
-  const foto = d.photo_data ? simpanFoto(d.photo_data) : undefined;
+  const foto = d.photo_data ? simpanGambar(d.photo_data, 'produk') : undefined;
   return db.withTransaction(async (client) => {
     try {
       let pid = id;

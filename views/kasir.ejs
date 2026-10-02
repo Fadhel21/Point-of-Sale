@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kasir · POS</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+  <script src="/static/js/app.js" defer></script>
+  <script src="/static/js/kasir.js" defer></script>
+  <script src="/static/js/alpine.min.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a href="/" style="margin-right:auto">← Menu</a>
+  <span class="redup"><%= outletAktif ? outletAktif.name : '' %></span>
+  <span><%= user.name %></span>
+  <% if (shift) { %><span class="lencana hijau">Shift buka sejak <%= waktu(shift.opened_at) %></span><% } %>
+  <a class="btn kecil" href="/transaksi/ditahan">Ditahan</a>
+  <a class="btn kecil" href="/transaksi">Riwayat</a>
+</div>
+
+<% if (!shift) { %>
+  <div class="login panel">
+    <h1>Shift belum dibuka</h1>
+    <p>Buka shift dengan modal awal sebelum mulai berjualan.</p>
+    <form method="post" action="/shift/buka">
+      <input type="hidden" name="kembali" value="/kasir">
+      <div class="field"><label>Modal awal (Rp)</label><input name="opening_cash" inputmode="decimal" required autofocus value="0"></div>
+      <button class="btn utama">Buka Shift</button>
+    </form>
+  </div>
+<% } else { %>
+<div class="kasir" x-data="kasir" x-cloak
+     data-kunci="<%= kunci %>" data-held="<%= heldId %>"
+     data-metode='<%- JSON.stringify(metode).replace(/</g, "\\u003c").replace(/'/g, "\\u0027") %>'>
+  <section class="kiri">
+    <div class="cari">
+      <input x-ref="cari" x-model="q" @input.debounce.250ms="cari()" @keydown.enter.prevent="enterCari()"
+             @keydown.down.prevent="pilihHasil(1)" @keydown.up.prevent="pilihHasil(-1)" @keydown.escape="hasilCari = []"
+             placeholder="Scan barcode / ketik nama atau kode produk  (F2)" autocomplete="off" autofocus>
+      <div class="hasil-cari" x-show="hasilCari.length" @click.outside="hasilCari = []">
+        <template x-for="(p, i) in hasilCari" :key="p.id + '-' + (p.unit_id || '')">
+          <div :class="{ pilih: i === idxHasil }" @click="tambah(p)">
+            <span><b x-text="p.name + (p.variant_name ? ' - ' + p.variant_name : '')"></b>
+              <span class="redup kecil" x-text="' ' + p.sku + (p.unit_id ? ' · ' + p.unit_name : '')"></span></span>
+            <span><span x-text="rupiah(p.price)"></span> <span class="redup kecil" x-text="'stok ' + angka(p.stok)"></span></span>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <div class="keranjang">
+      <table>
+        <thead><tr><th style="width:36px">#</th><th>Produk</th><th class="qty">Qty</th><th>Satuan</th><th class="uang">Harga</th><th class="uang">Diskon</th><th class="uang">Subtotal</th><th></th></tr></thead>
+        <tbody>
+          <template x-for="(it, i) in items" :key="it.key">
+            <tr :class="{ 'tebal': i === aktif }" @click="aktif = i">
+              <td x-text="i + 1"></td>
+              <td>
+                <div x-text="it.name"></div>
+                <div class="kecil redup">
+                  <span x-text="it.sku"></span>
+                  <template x-if="it.promo"><span class="lencana hijau" x-text="it.promo"></span></template>
+                  <template x-if="it.grosir"><span class="lencana kuning">grosir</span></template>
+                </div>
+                <input class="kecil" style="margin-top:.2rem" placeholder="catatan" x-model="it.note" @change="hitungUlang()" maxlength="200">
+              </td>
+              <td class="qty"><input class="qty-input" x-model="it.qty" @change="hitungUlang()" inputmode="decimal" :id="'qty' + i"></td>
+              <td>
+                <template x-if="it.units && it.units.length">
+                  <select x-model="it.unit_id" @change="hitungUlang()">
+                    <option value="" x-text="it.base_unit || 'satuan dasar'"></option>
+                    <template x-for="u in it.units"><option :value="u.unit_id" x-text="u.unit_name + ' (' + angka(u.factor) + ')'" :selected="String(u.unit_id) === String(it.unit_id)"></option></template>
+                  </select>
+                </template>
+                <template x-if="!it.units || !it.units.length"><span x-text="it.unit_name || ''"></span></template>
+              </td>
+              <td class="uang" x-text="rupiah(it.price)"></td>
+              <td class="uang">
+                <div style="display:flex;gap:.2rem">
+                  <select x-model="it.disc_type" @change="hitungUlang()" style="width:56px"><option value="persen">%</option><option value="nominal">Rp</option></select>
+                  <input x-model="it.disc_value" @change="hitungUlang()" style="width:80px" inputmode="decimal" placeholder="0">
+                </div>
+                <div class="kecil redup" x-show="it.discount && it.discount !== '0.00'" x-text="'-' + rupiah(it.discount)"></div>
+              </td>
+              <td class="uang" x-text="rupiah(it.line_total)"></td>
+              <td><button class="btn kecil" @click.stop="hapus(i)" title="Hapus (Del)">✕</button></td>
+            </tr>
+          </template>
+          <tr x-show="!items.length"><td colspan="8" class="redup" style="text-align:center;padding:3rem">Keranjang kosong. Scan atau cari produk.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pintasan" style="margin-top:.5rem">
+      <span><kbd>F2</kbd> cari</span><span><kbd>F3</kbd> pelanggan</span><span><kbd>F4</kbd> diskon/voucher</span>
+      <span><kbd>F8</kbd> tahan</span><span><kbd>F9</kbd> bayar</span><span><kbd>Ctrl</kbd>+<kbd>Del</kbd> batal</span>
+      <span><kbd>+</kbd>/<kbd>-</kbd> qty baris aktif</span><span><kbd>Del</kbd> hapus baris aktif</span>
+    </div>
+  </section>
+
+  <aside class="kanan">
+    <div class="panel">
+      <label>Pelanggan (F3)</label>
+      <div style="position:relative">
+        <input x-ref="pelanggan" x-model="qPelanggan" @input.debounce.300ms="cariPelanggan()" placeholder="Umum — cari nama/kode/telepon" autocomplete="off">
+        <div class="hasil-cari" x-show="hasilPelanggan.length" @click.outside="hasilPelanggan = []">
+          <template x-for="c in hasilPelanggan" :key="c.id">
+            <div @click="pilihPelanggan(c)"><span x-text="c.name"></span><span class="redup kecil" x-text="c.code + (c.is_member ? ' · ' + angka(c.points) + ' poin' : '')"></span></div>
+          </template>
+        </div>
+      </div>
+      <template x-if="customer">
+        <div style="margin-top:.5rem" class="baris">
+          <div><b x-text="customer.name"></b> <span class="lencana hijau" x-show="customer.is_member">member</span>
+            <div class="kecil redup" x-show="customer.is_member" x-text="'Poin: ' + angka(customer.points)"></div></div>
+          <button class="btn kecil pas" @click="customer = null; points_use = ''; hitungUlang()">✕</button>
+        </div>
+      </template>
+      <template x-if="customer && customer.is_member">
+        <div class="field" style="margin-top:.5rem"><label>Pakai poin</label><input x-model="points_use" @change="hitungUlang()" inputmode="numeric" placeholder="0"></div>
+      </template>
+    </div>
+
+    <div class="panel" x-show="panelDiskon">
+      <div class="baris">
+        <div><label>Diskon transaksi</label>
+          <div style="display:flex;gap:.2rem">
+            <select x-model="trx_disc_type" @change="hitungUlang()" style="width:60px"><option value="persen">%</option><option value="nominal">Rp</option></select>
+            <input x-ref="diskon" x-model="trx_disc_value" @change="hitungUlang()" inputmode="decimal" placeholder="0">
+          </div></div>
+        <div><label>Kode voucher</label><input x-model="voucher_code" @change="hitungUlang()" style="text-transform:uppercase"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <table class="ringkas">
+        <tr><td>Subtotal</td><td x-text="rupiah(hasil.subtotal)"></td></tr>
+        <tr x-show="nz(hasil.trx_discount)"><td>Diskon transaksi</td><td x-text="'-' + rupiah(hasil.trx_discount)"></td></tr>
+        <tr x-show="nz(hasil.voucher_discount)"><td>Voucher <span x-text="hasil.voucher"></span></td><td x-text="'-' + rupiah(hasil.voucher_discount)"></td></tr>
+        <tr x-show="nz(hasil.points_value)"><td>Poin</td><td x-text="'-' + rupiah(hasil.points_value)"></td></tr>
+        <tr x-show="nz(hasil.tax)"><td x-text="'Pajak ' + (hasil.tax_inclusive ? '(termasuk) ' : '') + angka(hasil.tax_rate) + '%'"></td><td x-text="rupiah(hasil.tax)"></td></tr>
+      </table>
+      <div class="redup kecil" style="text-align:right;margin-top:.5rem">TOTAL</div>
+      <div class="total-besar" x-text="rupiah(hasil.total)"></div>
+      <div class="redup kecil" style="text-align:right" x-show="hasil.total_tunai !== hasil.total" x-text="'Tunai (dibulatkan): ' + rupiah(hasil.total_tunai)"></div>
+      <div class="notif error" x-show="galat" x-text="galat" style="margin-top:.5rem"></div>
+    </div>
+
+    <div class="baris">
+      <button class="btn" @click="tahan()" :disabled="!items.length || sibuk">Tahan (F8)</button>
+      <button class="btn bahaya" @click="batal()" :disabled="!items.length">Batal</button>
+      <button class="btn" @click="panelDiskon = !panelDiskon">Diskon (F4)</button>
+    </div>
+    <button class="btn utama" style="font-size:1.3rem;justify-content:center;padding:.9rem" @click="bukaBayar()" :disabled="!items.length || sibuk">Bayar (F9)</button>
+  </aside>
+
+  <!-- Dialog pembayaran -->
+  <div class="latar" x-show="dialogBayar" x-transition.opacity @keydown.escape.window="if (!sibuk) dialogBayar = false">
+    <div class="dialog" @click.stop>
+      <h2>Pembayaran</h2>
+      <div class="baris"><div class="redup">Total</div><div class="total-besar pas" x-text="rupiah(totalBayar())"></div></div>
+      <template x-for="(p, i) in payments" :key="i">
+        <div class="baris" style="margin:.5rem 0">
+          <select x-model="p.method_code" style="flex:0 0 150px">
+            <template x-for="m in metode"><option :value="m.code" x-text="m.name" :selected="m.code === p.method_code"></option></template>
+          </select>
+          <input x-model="p.amount" inputmode="decimal" :id="'bayar' + i" @keydown.enter.prevent="simpan()">
+          <input x-model="p.reference" placeholder="Ref/No. kartu" x-show="jenis(p.method_code) !== 'tunai' && jenis(p.method_code) !== 'piutang'">
+          <button class="btn kecil pas" @click="payments.splice(i, 1)" x-show="payments.length > 1">✕</button>
+        </div>
+      </template>
+      <div class="baris">
+        <button class="btn kecil pas" @click="tambahMetode()">+ Metode lain</button>
+        <button class="btn kecil pas" @click="uangPas()">Uang pas</button>
+        <template x-for="n in pecahan"><button class="btn kecil pas" @click="setTunai(n)" x-text="rupiah(n)"></button></template>
+      </div>
+      <div class="panel" style="margin-top:1rem">
+        <div class="baris"><span>Dibayar</span><b class="pas" x-text="rupiah(fromSen(dibayarSen()))"></b></div>
+        <div class="baris"><span x-text="sisaSen() > 0n ? 'Kurang' : 'Kembalian'"></span>
+          <b class="pas total-besar" :style="sisaSen() > 0n ? 'color:var(--bahaya)' : ''" x-text="rupiah(fromSen(sisaSen() > 0n ? sisaSen() : -sisaSen()))"></b></div>
+      </div>
+      <div class="notif error" x-show="galat" x-text="galat"></div>
+      <div class="aksi">
+        <button class="btn" @click="dialogBayar = false" :disabled="sibuk">Kembali (Esc)</button>
+        <button class="btn utama" @click="simpan()" :disabled="sibuk || sisaSen() > 0n" x-text="sibuk ? 'Menyimpan…' : 'Simpan (Enter)'"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dialog selesai -->
+  <div class="latar" x-show="selesai" x-transition.opacity>
+    <div class="dialog" @click.stop>
+      <h2>Transaksi tersimpan</h2>
+      <p>No. <b x-text="selesai && selesai.number"></b></p>
+      <p>Kembalian</p>
+      <div class="total-besar" x-text="selesai && rupiah(selesai.change)"></div>
+      <div class="aksi" style="margin-top:1rem">
+        <a class="btn" :href="selesai && '/transaksi/' + selesai.id" target="_blank">Detail</a>
+        <button class="btn" @click="cetak()">Cetak Struk (P)</button>
+        <button class="btn utama" x-ref="baru" @click="transaksiBaru()">Transaksi Baru (Enter)</button>
+      </div>
+    </div>
+  </div>
+</div>
+<% } %>
+</body>
+</html>

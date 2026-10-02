@@ -55,6 +55,18 @@ app.use((err, req, res, next) => {
     res.set('HX-Reswap', 'innerHTML');
     return res.status(200).render('partials/notif', { jenis: 'error', pesan });
   }
+  // Form biasa: kembali ke halaman asal dengan pesan kesalahan
+  if (req.method === 'POST' && err.expose && status < 500 && status !== 403) {
+    const asal = req.get('referer');
+    if (asal) {
+      const u = new URL(asal);
+      if (u.host === req.headers.host) {
+        u.searchParams.delete('ok');
+        u.searchParams.set('err', pesan);
+        return res.redirect(u.pathname + u.search);
+      }
+    }
+  }
   res.status(status).render('error', { title: 'Kesalahan', pesan, status });
 });
 

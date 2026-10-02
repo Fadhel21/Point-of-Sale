@@ -1,0 +1,33 @@
+<%- include('../partials/atas') %>
+<h1>Retur Penjualan <%= s.number %></h1>
+<form class="panel" method="post" action="/transaksi/<%= s.id %>/retur" data-konfirmasi="Simpan retur? Stok akan bertambah dan dana dikembalikan.">
+  <div class="tabel-wrap"><table>
+    <thead><tr><th>Produk</th><th class="qty">Dibeli</th><th class="qty">Sudah diretur</th><th class="uang">Subtotal</th><th class="qty">Qty retur</th></tr></thead>
+    <tbody>
+    <% s.items.forEach(function (it, i) { var sisa = (Number(it.qty) - Number(it.returned_qty)); %>
+      <tr><td><%= it.product_name %></td><td class="qty"><%= angka(it.qty) %> <%= it.unit_name || '' %></td>
+        <td class="qty"><%= angka(it.returned_qty) %></td><td class="uang"><%= rupiah(it.line_total) %></td>
+        <td class="qty">
+          <input type="hidden" name="items[<%= i %>][sale_item_id]" value="<%= it.id %>">
+          <input name="items[<%= i %>][qty]" class="qty-input" inputmode="decimal" placeholder="0" <%= sisa <= 0 ? 'disabled' : '' %>>
+        </td></tr>
+    <% }) %>
+    </tbody>
+  </table></div>
+  <p class="kecil redup">Nilai pengembalian dihitung server secara proporsional dari yang benar-benar dibayar (setelah diskon transaksi, voucher, dan poin).</p>
+  <div class="baris">
+    <div><label>Alasan retur</label><input name="reason" required minlength="3"></div>
+    <div><label>Kembalikan dana lewat</label><select name="refund_method">
+      <% metode.forEach(function (m) { %><option value="<%= m.code %>"><%= m.name %><%= m.kind === 'piutang' ? ' (kurangi piutang)' : '' %></option><% }) %>
+    </select></div>
+  </div>
+  <% if (!boleh('transaksi.setujui')) { %>
+    <h2>Persetujuan supervisor</h2>
+    <div class="baris">
+      <div><label>Username supervisor</label><input name="supervisor_username" required autocomplete="off"></div>
+      <div><label>Password supervisor</label><input type="password" name="supervisor_password" required autocomplete="new-password"></div>
+    </div>
+  <% } %>
+  <div class="aksi" style="margin-top:1rem"><a class="btn" href="/transaksi/<%= s.id %>">Batal</a><button class="btn utama">Simpan Retur</button></div>
+</form>
+<%- include('../partials/bawah') %>

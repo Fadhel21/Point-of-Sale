@@ -1,0 +1,19 @@
+<%- include('../partials/atas') %>
+<h1>Outlet</h1>
+<form class="panel baris" method="post" action="/pengaturan/outlet">
+  <% if (edit) { %><input type="hidden" name="id" value="<%= edit.id %>"><% } %>
+  <div class="pas" style="width:110px"><label>Kode</label><input name="code" value="<%= edit ? edit.code : '' %>" required maxlength="10"></div>
+  <div><label>Nama</label><input name="name" value="<%= edit ? edit.name : '' %>" required></div>
+  <div style="flex:2"><label>Alamat</label><input name="address" value="<%= edit ? edit.address || '' : '' %>"></div>
+  <div><label>Telepon</label><input name="phone" value="<%= edit ? edit.phone || '' : '' %>"></div>
+  <div class="pas"><input type="hidden" name="active" value="0"><label class="cek"><input type="checkbox" name="active" value="1" <%= !edit || edit.active ? 'checked' : '' %>> Aktif</label></div>
+  <div class="pas"><button class="btn utama"><%= edit ? 'Simpan' : 'Tambah' %></button><% if (edit) { %> <a class="btn" href="/pengaturan/outlet">Batal</a><% } %></div>
+</form>
+<p class="kecil redup">Kode outlet dipakai di nomor struk. Mengubah kode tidak mengubah nomor transaksi lama.</p>
+<table><thead><tr><th>Kode</th><th>Nama</th><th>Alamat</th><th>Telepon</th><th>Status</th><th></th></tr></thead><tbody>
+<% rows.forEach(function (o) { %><tr><td><%= o.code %></td><td><%= o.name %></td><td><%= o.address || '' %></td><td><%= o.phone || '' %></td>
+  <td><span class="lencana <%= o.active ? 'hijau' : '' %>"><%= o.active ? 'aktif' : 'nonaktif' %></span></td>
+  <td><div class="aksi"><a class="btn kecil" href="?edit=<%= o.id %>">Ubah</a>
+    <form method="post" action="/pengaturan/outlet/<%= o.id %>/hapus" data-konfirmasi="Hapus outlet <%= o.name %>?"><button class="btn kecil">Hapus</button></form></div></td></tr><% }) %>
+</tbody></table>
+<%- include('../partials/bawah') %>

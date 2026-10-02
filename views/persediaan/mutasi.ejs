@@ -1,0 +1,24 @@
+<%- include('../partials/atas') %>
+<h1>Mutasi Antar Outlet</h1>
+<% var tujuan = outlets.filter(function (o) { return String(o.id) !== String(outletId); }); %>
+<% if (!tujuan.length) { %>
+  <div class="panel">Hanya ada satu outlet. Tambahkan outlet di Pengaturan → Outlet untuk memakai mutasi.</div>
+<% } else { %>
+<form class="panel" method="post" action="/persediaan/mutasi" data-konfirmasi="Kirim mutasi? Stok outlet asal berkurang dan outlet tujuan bertambah.">
+  <div class="baris" style="margin-bottom:.75rem">
+    <div><label>Dari</label><input value="<%= outletAktif.name %>" disabled></div>
+    <div><label>Ke outlet</label><select name="to_outlet_id" required>
+      <% tujuan.forEach(function (o) { %><option value="<%= o.id %>"><%= o.name %></option><% }) %></select></div>
+    <div style="flex:2"><label>Catatan</label><input name="note"></div>
+  </div>
+  <%- include('../partials/item-produk', { awal: [], harga: false }) %>
+  <div class="aksi" style="margin-top:.75rem"><button class="btn utama">Simpan Mutasi</button></div>
+</form>
+<% } %>
+<div class="tabel-wrap"><table>
+  <thead><tr><th>Nomor</th><th>Waktu</th><th>Dari</th><th>Ke</th><th class="qty">Item</th><th>Oleh</th></tr></thead>
+  <tbody><% rows.forEach(function (t) { %><tr><td><a href="/persediaan/mutasi/<%= t.id %>"><%= t.number %></a></td><td><%= waktu(t.created_at) %></td>
+    <td><%= t.from_name %></td><td><%= t.to_name %></td><td class="qty"><%= t.jml_item %></td><td><%= t.user_name %></td></tr><% }) %>
+  <% if (!rows.length) { %><tr><td colspan="6" class="redup">Belum ada mutasi.</td></tr><% } %></tbody>
+</table></div>
+<%- include('../partials/bawah') %>

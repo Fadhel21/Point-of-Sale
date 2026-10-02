@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title %> · POS</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+  <script src="/static/js/htmx.min.js" defer></script>
+  <script src="/static/js/app.js" defer></script>
+  <script src="/static/js/form.js" defer></script>
+  <script src="/static/js/alpine.min.js" defer></script>
+</head>
+<body hx-headers='{"Accept":"text/html"}'>
+<div class="app">
+  <nav class="sidebar no-print">
+    <div class="merek">POS</div>
+    <% menu.forEach(function (m) { %>
+      <% if (!m.anak) { %>
+        <a href="<%= m.href %>" class="<%= path === m.href ? 'aktif' : '' %>"><span class="ikon"><%= m.ikon %></span><%= m.label %></a>
+      <% } else { const buka = m.anak.some(function (a) { return path === a.href || path.indexOf(a.href + '/') === 0; }); %>
+        <details <%= buka ? 'open' : '' %>>
+          <summary><span class="ikon"><%= m.ikon %></span><%= m.label %></summary>
+          <% m.anak.forEach(function (a) { %>
+            <a href="<%= a.href %>" class="<%= path === a.href ? 'aktif' : '' %>"><%= a.label %></a>
+          <% }) %>
+        </details>
+      <% } %>
+    <% }) %>
+  </nav>
+  <div class="utama">
+    <div class="topbar no-print">
+      <% if (outlets.length > 1 && boleh('transaksi.semua')) { %>
+        <form method="post" action="/outlet">
+          <select name="outlet_id" data-autosubmit aria-label="Outlet aktif">
+            <% outlets.forEach(function (o) { %><option value="<%= o.id %>" <%= String(o.id) === String(outletId) ? 'selected' : '' %>><%= o.name %></option><% }) %>
+          </select>
+        </form>
+      <% } else if (outletAktif) { %><span class="redup"><%= outletAktif.name %></span><% } %>
+      <a href="/akun"><%= user.name %></a> <span class="lencana"><%= namaPeran[user.role] %></span>
+      <form method="post" action="/logout"><button class="btn kecil">Keluar</button></form>
+    </div>
+    <main class="isi">
+      <% if (flash) { %><div class="notif <%= flash.jenis %>"><%= flash.pesan %></div><% } %>

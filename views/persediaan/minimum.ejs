@@ -1,0 +1,11 @@
+<%- include('../partials/atas') %>
+<div class="kepala"><h1>Stok di Bawah Minimum</h1>
+  <div class="aksi"><a class="btn" href="?<%= query.semua ? '' : 'semua=1' %>"><%= query.semua ? 'Outlet aktif saja' : 'Semua outlet' %></a>
+  <% if (boleh('pembelian')) { %><a class="btn utama" href="/pembelian/po/baru?minimum=1">Buat PO dari daftar ini</a><% } %></div></div>
+<div class="tabel-wrap"><table>
+  <thead><tr><th>Outlet</th><th>SKU</th><th>Produk</th><th class="qty">Stok</th><th class="qty">Minimum</th><th class="qty">Kekurangan</th></tr></thead>
+  <tbody><% rows.forEach(function (r) { %><tr><td><%= r.outlet_name %></td><td><%= r.sku %></td><td><a href="/persediaan/kartu?product_id=<%= r.id %>"><%= r.name %><%= r.variant_name ? ' - ' + r.variant_name : '' %></a></td>
+    <td class="qty"><span class="lencana merah"><%= angka(r.qty) %></span></td><td class="qty"><%= angka(r.min_stock) %></td><td class="qty"><%= angka(r.kurang) %></td></tr><% }) %>
+  <% if (!rows.length) { %><tr><td colspan="6" class="redup">Semua stok aman.</td></tr><% } %></tbody>
+</table></div>
+<%- include('../partials/bawah') %>

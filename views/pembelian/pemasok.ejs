@@ -1,0 +1,23 @@
+<%- include('../partials/atas') %>
+<h1>Pemasok</h1>
+<form class="panel" method="post" action="/pembelian/pemasok">
+  <% if (edit) { %><input type="hidden" name="id" value="<%= edit.id %>"><% } %>
+  <div class="baris">
+    <div><label>Nama</label><input name="name" value="<%= edit ? edit.name : '' %>" required></div>
+    <div><label>Kontak</label><input name="contact" value="<%= edit ? edit.contact || '' : '' %>"></div>
+    <div><label>Telepon</label><input name="phone" value="<%= edit ? edit.phone || '' : '' %>"></div>
+    <div><label>Email</label><input type="email" name="email" value="<%= edit ? edit.email || '' : '' %>"></div>
+    <div style="flex:2"><label>Alamat</label><input name="address" value="<%= edit ? edit.address || '' : '' %>"></div>
+    <div class="pas"><button class="btn utama"><%= edit ? 'Simpan' : 'Tambah' %></button><% if (edit) { %> <a class="btn" href="/pembelian/pemasok">Batal</a><% } %></div>
+  </div>
+</form>
+<form method="get" class="baris" style="margin-bottom:.75rem"><div><input name="q" value="<%= q %>" placeholder="cari pemasok"></div><div class="pas"><button class="btn">Cari</button></div></form>
+<div class="tabel-wrap"><table>
+  <thead><tr><th>Nama</th><th>Kontak</th><th>Telepon</th><th>Alamat</th><th class="uang">Hutang</th><th></th></tr></thead>
+  <tbody><% rows.forEach(function (s) { %><tr><td><%= s.name %></td><td><%= s.contact || '' %></td><td><%= s.phone || '' %></td><td><%= s.address || '' %></td>
+    <td class="uang"><%= rupiah(s.payable) %></td>
+    <td><div class="aksi"><a class="btn kecil" href="?edit=<%= s.id %>">Ubah</a>
+      <form method="post" action="/pembelian/pemasok/<%= s.id %>/hapus" data-konfirmasi="Hapus pemasok <%= s.name %>?"><button class="btn kecil">Hapus</button></form></div></td></tr><% }) %>
+  <% if (!rows.length) { %><tr><td colspan="6" class="redup">Belum ada pemasok.</td></tr><% } %></tbody>
+</table></div>
+<%- include('../partials/bawah') %>

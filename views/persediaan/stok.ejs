@@ -1,0 +1,18 @@
+<%- include('../partials/atas') %>
+<h1>Stok Saat Ini — <%= outletAktif ? outletAktif.name : '' %></h1>
+<form class="panel baris" method="get">
+  <div style="flex:2"><label>Cari</label><input name="q" value="<%= f.q || '' %>"></div>
+  <div><label>Kategori</label><select name="category_id"><option value="">Semua</option>
+    <% kategori.forEach(function (k) { %><option value="<%= k.id %>" <%= String(f.categoryId) === String(k.id) ? 'selected' : '' %>><%= k.name %></option><% }) %></select></div>
+  <div class="pas"><button class="btn utama">Cari</button></div>
+</form>
+<div class="tabel-wrap"><table>
+  <thead><tr><th>SKU</th><th>Produk</th><th>Kategori</th><th class="qty">Stok</th><th class="qty">Minimum</th><% if (lihatHpp) { %><th class="uang">Nilai</th><% } %><th></th></tr></thead>
+  <tbody><% rows.forEach(function (r) { var rendah = Number(r.min_stock) > 0 && Number(r.qty) <= Number(r.min_stock); %>
+    <tr><td><%= r.sku %></td><td><%= r.name %><%= r.variant_name ? ' - ' + r.variant_name : '' %></td><td><%= r.category_name || '-' %></td>
+      <td class="qty"><span class="<%= rendah ? 'lencana merah' : '' %>"><%= angka(r.qty) %></span> <%= r.unit_name || '' %></td>
+      <td class="qty"><%= angka(r.min_stock) %></td><% if (lihatHpp) { %><td class="uang"><%= rupiah(r.nilai) %></td><% } %>
+      <td><a class="btn kecil" href="/persediaan/kartu?product_id=<%= r.id %>">Kartu</a></td></tr>
+  <% }) %><% if (!rows.length) { %><tr><td colspan="7" class="redup">Tidak ada data.</td></tr><% } %></tbody>
+</table></div>
+<%- include('../partials/bawah') %>

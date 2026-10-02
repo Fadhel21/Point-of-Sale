@@ -1,0 +1,12 @@
+<%- include('../partials/atas') %>
+<h1>Struk</h1>
+<form class="panel" method="post" action="/pengaturan/struk" style="max-width:640px">
+  <div class="field"><label>Lebar kertas</label><select name="lebar">
+    <option value="58" <%= s.lebar !== '80' ? 'selected' : '' %>>58 mm</option><option value="80" <%= s.lebar === '80' ? 'selected' : '' %>>80 mm</option></select></div>
+  <div class="field"><label>Teks atas</label><textarea name="header" rows="2"><%= s.header || '' %></textarea></div>
+  <div class="field"><label>Teks bawah</label><textarea name="footer" rows="2"><%= s.footer || '' %></textarea></div>
+  <input type="hidden" name="tampilLogo" value="0"><label class="cek"><input type="checkbox" name="tampilLogo" value="1" <%= s.tampilLogo ? 'checked' : '' %>> Tampilkan logo toko</label>
+  <p class="kecil redup">Saat mencetak, pilih printer thermal dan matikan "Header and footer" di dialog cetak browser.</p>
+  <button class="btn utama">Simpan</button>
+</form>
+<%- include('../partials/bawah') %>

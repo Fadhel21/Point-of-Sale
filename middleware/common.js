@@ -20,6 +20,11 @@ function cekOrigin(req, res, next) {
 function helperTampilan(req, res, next) {
   res.locals.rupiah = rupiah;
   res.locals.angka = angka;
+  // Nilai mentah untuk isi <input>: "12.5000" -> "12.5", "3.0000" -> "3"
+  res.locals.nilaiQty = (v) => {
+    const s = String(v ?? '0');
+    return s.includes('.') ? s.replace(/0+$/, '').replace(/\.$/, '') : s;
+  };
   res.locals.tgl = (v, f = 'DD/MM/YYYY') => (v ? dayjs(v).format(f) : '-');
   res.locals.waktu = (v) => (v ? dayjs(v).format('DD/MM/YYYY HH:mm') : '-');
   res.locals.path = req.path;

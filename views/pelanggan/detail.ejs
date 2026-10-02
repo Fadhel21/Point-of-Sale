@@ -1,0 +1,49 @@
+<%- include('../partials/atas') %>
+<div class="kepala"><h1><%= c.name %> <span class="redup kecil"><%= c.code %></span> <% if (c.is_member) { %><span class="lencana hijau">member</span><% } %></h1>
+  <div class="aksi"><a class="btn" href="/pelanggan?edit=<%= c.id %>">Ubah</a>
+  <% if (boleh('pelanggan.piutang')) { %><form method="post" action="/pelanggan/<%= c.id %>/hapus" data-konfirmasi="Hapus pelanggan ini?"><button class="btn">Hapus</button></form><% } %></div></div>
+<div class="grid4">
+  <div class="stat"><div class="label">Telepon</div><div class="nilai" style="font-size:1rem"><%= c.phone || '-' %></div></div>
+  <div class="stat"><div class="label">Email</div><div class="nilai" style="font-size:1rem"><%= c.email || '-' %></div></div>
+  <div class="stat"><div class="label">Poin</div><div class="nilai"><%= angka(c.points) %></div></div>
+  <% if (lihatPiutang) { %><div class="stat"><div class="label">Piutang</div><div class="nilai"><%= rupiah(c.receivable) %></div></div><% } %>
+</div>
+<div class="grid2" style="margin-top:1rem">
+  <% if (lihatPiutang && Number(c.receivable) > 0) { %>
+  <form class="panel" method="post" action="/pelanggan/<%= c.id %>/bayar">
+    <h2 style="margin-top:0">Pelunasan piutang</h2>
+    <div class="baris">
+      <div><label>Jumlah (Rp)</label><input name="amount" inputmode="decimal" required></div>
+      <div><label>Metode</label><select name="method_code"><% metode.filter(function (m) { return m.kind !== 'piutang'; }).forEach(function (m) { %><option value="<%= m.code %>"><%= m.name %></option><% }) %></select></div>
+      <div><label>Catatan</label><input name="note"></div>
+      <div class="pas"><button class="btn utama">Simpan</button></div>
+    </div>
+    <p class="kecil redup">Pelunasan tunai otomatis tercatat sebagai kas masuk di shift Anda yang sedang buka.</p>
+  </form>
+  <% } %>
+  <% if (lihatPiutang && c.is_member) { %>
+  <form class="panel" method="post" action="/pelanggan/<%= c.id %>/poin">
+    <h2 style="margin-top:0">Penyesuaian poin</h2>
+    <div class="baris">
+      <div class="pas"><select name="arah"><option value="tambah">Tambah</option><option value="kurang">Kurangi</option></select></div>
+      <div><input name="points" inputmode="numeric" placeholder="poin" required></div>
+      <div><input name="note" placeholder="keterangan" required></div>
+      <div class="pas"><button class="btn">Simpan</button></div>
+    </div>
+  </form>
+  <% } %>
+</div>
+<h2>Riwayat belanja</h2>
+<div class="tabel-wrap"><table><thead><tr><th>Waktu</th><th>No. Struk</th><th class="uang">Total</th><th class="qty">Poin +</th><th class="qty">Poin −</th><th>Status</th></tr></thead><tbody>
+<% riwayat.forEach(function (s) { %><tr><td><%= waktu(s.created_at) %></td><td><a href="/transaksi/<%= s.id %>"><%= s.number %></a></td><td class="uang"><%= rupiah(s.total) %></td>
+  <td class="qty"><%= angka(s.points_earned) %></td><td class="qty"><%= angka(s.points_used) %></td><td><%= s.status %></td></tr><% }) %>
+<% if (!riwayat.length) { %><tr><td colspan="6" class="redup">Belum ada transaksi.</td></tr><% } %></tbody></table></div>
+<div class="grid2">
+  <div><h2>Mutasi poin</h2><table><thead><tr><th>Waktu</th><th>Keterangan</th><th class="qty">Poin</th></tr></thead><tbody>
+    <% poin.forEach(function (p) { %><tr><td><%= waktu(p.created_at) %></td><td><%= p.note || p.ref_type %></td><td class="qty"><%= angka(p.points) %></td></tr><% }) %></tbody></table></div>
+  <% if (lihatPiutang) { %>
+  <div><h2>Mutasi piutang</h2><table><thead><tr><th>Waktu</th><th>Keterangan</th><th class="uang">Jumlah</th></tr></thead><tbody>
+    <% piutang.forEach(function (p) { %><tr><td><%= waktu(p.created_at) %></td><td><%= p.note || p.ref_type %><%= p.method_code ? ' (' + p.method_code + ')' : '' %></td><td class="uang"><%= rupiah(p.amount) %></td></tr><% }) %></tbody></table></div>
+  <% } %>
+</div>
+<%- include('../partials/bawah') %>

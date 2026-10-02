@@ -1,0 +1,26 @@
+<%- include('../partials/atas') %>
+<h1>Kartu Stok</h1>
+<form class="panel baris" method="get" x-data="pilihProduk">
+  <div style="flex:2;position:relative"><label>Produk</label>
+    <input x-model="q" @input.debounce.300ms="cari()" placeholder="<%= p ? p.name + ' (' + p.sku + ')' : 'cari produk' %>" autocomplete="off">
+    <input type="hidden" name="product_id" :value="pilih ? pilih.id : '<%= p ? p.id : '' %>'">
+    <div class="hasil-cari" x-show="hasil.length" @click.outside="hasil = []">
+      <template x-for="r in hasil" :key="r.id"><div @click="ambil(r)"><span x-text="r.name"></span><span class="redup kecil" x-text="r.sku"></span></div></template>
+    </div>
+  </div>
+  <div><label>Dari</label><input type="date" name="from" value="<%= f.from %>"></div>
+  <div><label>Sampai</label><input type="date" name="to" value="<%= f.to %>"></div>
+  <div class="pas"><button class="btn utama">Tampilkan</button></div>
+</form>
+<% if (p) { %>
+  <p><b><%= p.name %></b> (<%= p.sku %>) · Stok sekarang di <%= outletAktif.name %>: <b><%= angka(stokSekarang) %> <%= p.unit_name || '' %></b></p>
+  <div class="tabel-wrap"><table>
+    <thead><tr><th>Waktu</th><th>Jenis</th><th>Dokumen</th><th class="qty">Masuk</th><th class="qty">Keluar</th><th class="qty">Saldo</th><th>Oleh</th><th>Catatan</th></tr></thead>
+    <tbody><% rows.forEach(function (m) { var masuk = Number(m.qty_change) > 0; %>
+      <tr><td><%= waktu(m.created_at) %></td><td><%= m.ref_type.replace('_', ' ') %></td><td><%= m.ref_no || '' %></td>
+        <td class="qty"><%= masuk ? angka(m.qty_change) : '' %></td><td class="qty"><%= masuk ? '' : angka(m.qty_change).replace('-', '') %></td>
+        <td class="qty"><%= angka(m.qty_after) %></td><td><%= m.user_name || '' %></td><td><%= m.note || '' %></td></tr>
+    <% }) %><% if (!rows.length) { %><tr><td colspan="8" class="redup">Tidak ada pergerakan pada periode ini.</td></tr><% } %></tbody>
+  </table></div>
+<% } %>
+<%- include('../partials/bawah') %>

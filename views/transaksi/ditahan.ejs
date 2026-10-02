@@ -1,0 +1,13 @@
+<%- include('../partials/atas') %>
+<div class="kepala"><h1>Transaksi Ditahan</h1></div>
+<div class="tabel-wrap"><table>
+  <thead><tr><th>Waktu</th><th>Label</th><th>Pelanggan</th><th>Kasir</th><th class="qty">Item</th><th></th></tr></thead>
+  <tbody><% rows.forEach(function (r) { %>
+    <tr><td><%= waktu(r.created_at) %></td><td><%= r.label || '-' %></td><td><%= r.payload.customer_name || 'Umum' %></td><td><%= r.user_name %></td><td class="qty"><%= r.jml_item %></td>
+      <td><div class="aksi">
+        <% if (String(r.user_id) === String(user.id)) { %><a class="btn kecil utama" href="/kasir?lanjut=<%= r.id %>">Lanjutkan</a><% } %>
+        <form method="post" action="/transaksi/ditahan/<%= r.id %>/hapus" data-konfirmasi="Hapus transaksi ditahan ini?"><button class="btn kecil">Hapus</button></form>
+      </div></td></tr>
+  <% }) %><% if (!rows.length) { %><tr><td colspan="6" class="redup">Tidak ada transaksi ditahan.</td></tr><% } %></tbody>
+</table></div>
+<%- include('../partials/bawah') %>

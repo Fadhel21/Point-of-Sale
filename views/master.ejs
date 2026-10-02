@@ -1,0 +1,18 @@
+<%- include('partials/atas') %>
+<h1><%= label %></h1>
+<form class="panel baris" method="post" action="/master/<%= jenis %>">
+  <% if (edit) { %><input type="hidden" name="id" value="<%= edit.id %>"><% } %>
+  <div><label>Nama <%= label.toLowerCase() %></label><input name="name" value="<%= edit ? edit.name : '' %>" required autofocus></div>
+  <div class="pas"><button class="btn utama"><%= edit ? 'Simpan perubahan' : 'Tambah' %></button>
+    <% if (edit) { %><a class="btn" href="/master/<%= jenis %>">Batal</a><% } %></div>
+</form>
+<div class="tabel-wrap"><table>
+  <thead><tr><th>Nama</th><th style="width:160px"></th></tr></thead>
+  <tbody><% rows.forEach(function (r) { %>
+    <tr><td><%= r.name %></td><td><div class="aksi">
+      <a class="btn kecil" href="?edit=<%= r.id %>">Ubah</a>
+      <form method="post" action="/master/<%= jenis %>/<%= r.id %>/hapus" data-konfirmasi="Hapus <%= r.name %>?"><button class="btn kecil">Hapus</button></form>
+    </div></td></tr>
+  <% }) %><% if (!rows.length) { %><tr><td colspan="2" class="redup">Belum ada data.</td></tr><% } %></tbody>
+</table></div>
+<%- include('partials/bawah') %>
