@@ -1,4 +1,4 @@
-﻿# POS â€” Aplikasi Kasir Retail
+# POS — Aplikasi Kasir Retail
 
 Aplikasi Point of Sale ringan: Node.js + Express + EJS + HTMX/Alpine.js + PostgreSQL.
 Tanpa tahap build, tanpa ORM, tanpa library native.
@@ -47,7 +47,7 @@ dan membuatnya ulang setiap kali dijalankan. Database `pos` tidak disentuh.
 | `config/` | konfigurasi & koneksi DB, helper transaksi `withTransaction` |
 | `migrations/` | file SQL bernomor; **jangan edit migrasi yang sudah dijalankan**, buat file baru |
 | `services/` | seluruh SQL & aturan bisnis |
-| `controllers/` | baca request â†’ panggil service â†’ render (tanpa SQL) |
+| `controllers/` | baca request → panggil service → render (tanpa SQL) |
 | `routes/` | peta URL & izin per peran |
 | `views/` | template EJS |
 | `public/` | CSS & JS statis (HTMX, Alpine.js, Chart.js, kasir.js) |
@@ -79,15 +79,15 @@ dan membuatnya ulang setiap kali dijalankan. Database `pos` tidak disentuh.
 | F9 | bayar |
 | Enter (di dialog bayar) | simpan |
 | Ctrl+Del | batalkan transaksi |
-| + / âˆ’ | ubah qty baris aktif |
+| + / − | ubah qty baris aktif |
 | Del | hapus baris aktif |
-| â†‘ / â†“ | pilih baris |
+| ↑ / ↓ | pilih baris |
 | P / Enter (setelah bayar) | cetak struk / transaksi baru |
 
 ## Cadangan & pemulihan
 
 Cadangan dibuat dengan `pg_dump` (format custom) ke folder `backups/`, otomatis oleh worker atau
-manual dari Pengaturan â†’ Cadangan Data. Atur `PG_DUMP_PATH` di `.env`.
+manual dari Pengaturan → Cadangan Data. Atur `PG_DUMP_PATH` di `.env`.
 
 Pemulihan ke database baru:
 
