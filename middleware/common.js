@@ -1,6 +1,7 @@
 // Middleware umum: proteksi CSRF berbasis Origin, helper tampilan
 const dayjs = require('dayjs');
 const { rupiah, angka } = require('../lib/money');
+const { ikon } = require('../lib/ikon');
 
 // Penanda versi aset statis: berubah tiap server dijalankan ulang, agar cache browser diperbarui
 const VERSI = Date.now().toString(36);
@@ -30,6 +31,7 @@ function cekOrigin(req, res, next) {
 
 function helperTampilan(req, res, next) {
   res.locals.v = VERSI;
+  res.locals.ikon = ikon;
   res.locals.rupiah = rupiah;
   res.locals.angka = angka;
   // Nilai mentah untuk isi <input>: "12.5000" -> "12.5", "3.0000" -> "3"

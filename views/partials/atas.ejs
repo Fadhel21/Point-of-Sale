@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><%= title %> · POS</title>
   <link rel="stylesheet" href="/static/css/app.css?v=<%= v %>">
+  <script src="/static/js/sidebar.js?v=<%= v %>"></script>
   <script src="/static/js/htmx.min.js?v=<%= v %>" defer></script>
   <script src="/static/js/app.js?v=<%= v %>" defer></script>
   <script src="/static/js/form.js?v=<%= v %>" defer></script>
@@ -12,32 +13,67 @@
 </head>
 <body hx-headers='{"Accept":"text/html"}'>
 <div class="app">
-  <nav class="sidebar no-print">
-    <div class="merek">POS</div>
-    <% menu.forEach(function (m) { %>
-      <% if (!m.anak) { %>
-        <a href="<%= m.href %>" class="<%= path === m.href ? 'aktif' : '' %>"><span class="ikon"><%= m.ikon %></span><%= m.label %></a>
-      <% } else { const buka = m.anak.some(function (a) { return path === a.href || path.indexOf(a.href + '/') === 0; }); %>
-        <details <%= buka ? 'open' : '' %>>
-          <summary><span class="ikon"><%= m.ikon %></span><%= m.label %></summary>
-          <% m.anak.forEach(function (a) { %>
-            <a href="<%= a.href %>" class="<%= path === a.href ? 'aktif' : '' %>"><%= a.label %></a>
-          <% }) %>
-        </details>
-      <% } %>
-    <% }) %>
-  </nav>
-  <div class="utama">
-    <div class="topbar no-print">
-      <% if (outlets.length > 1 && boleh('transaksi.semua')) { %>
-        <form method="post" action="/outlet">
-          <select name="outlet_id" data-autosubmit aria-label="Outlet aktif">
-            <% outlets.forEach(function (o) { %><option value="<%= o.id %>" <%= String(o.id) === String(outletId) ? 'selected' : '' %>><%= o.name %></option><% }) %>
-          </select>
-        </form>
-      <% } else if (outletAktif) { %><span class="redup"><%= outletAktif.name %></span><% } %>
-      <a href="/akun"><%= user.name %></a> <span class="lencana"><%= namaPeran[user.role] %></span>
-      <form method="post" action="/logout"><button class="btn kecil">Keluar</button></form>
+  <aside class="sidebar no-print" id="sidebar" aria-label="Menu utama">
+    <div class="sb-merek">
+      <span class="sb-logo"><%- ikon('keranjang') %></span>
+      <span class="sb-teks sb-nama">POS</span>
+      <button type="button" class="sb-ciut" data-ciut aria-label="Ciutkan menu" title="Ciutkan / lebarkan menu">
+        <%- ikon('ciut') %>
+      </button>
     </div>
+
+    <nav class="sb-nav">
+      <% var grupSebelum = null; %>
+      <% menu.forEach(function (m) { %>
+        <% if (m.grup !== grupSebelum) { grupSebelum = m.grup; %><div class="sb-grup"><span class="sb-teks"><%= m.grup %></span></div><% } %>
+        <% if (!m.anak) { var aktif = path === m.href; %>
+          <a href="<%= m.href %>" class="sb-item <%= aktif ? 'aktif' : '' %>" <%= aktif ? 'aria-current=page' : '' %> data-label="<%= m.label %>">
+            <%- ikon(m.ikon) %><span class="sb-teks"><%= m.label %></span>
+          </a>
+        <% } else { var buka = m.anak.some(function (a) { return path === a.href || path.indexOf(a.href + '/') === 0; }); %>
+          <details class="sb-kelompok" <%= buka ? 'open' : '' %>>
+            <summary class="sb-item <%= buka ? 'induk-aktif' : '' %>" data-label="<%= m.label %>">
+              <%- ikon(m.ikon) %><span class="sb-teks"><%= m.label %></span><%- ikon('chevron', 'sb-panah') %>
+            </summary>
+            <div class="sb-anak">
+              <% m.anak.forEach(function (a) { var aktifAnak = path === a.href; %>
+                <a href="<%= a.href %>" class="<%= aktifAnak ? 'aktif' : '' %>" <%= aktifAnak ? 'aria-current=page' : '' %>><%= a.label %></a>
+              <% }) %>
+            </div>
+          </details>
+        <% } %>
+      <% }) %>
+    </nav>
+
+    <div class="sb-user">
+      <a href="/akun" class="sb-avatar" title="Akun saya"><%= user.name.split(' ').map(function (s) { return s[0]; }).slice(0, 2).join('').toUpperCase() %></a>
+      <div class="sb-teks sb-user-info">
+        <a href="/akun" class="sb-user-nama"><%= user.name %></a>
+        <span class="sb-user-peran"><%= namaPeran[user.role] %></span>
+      </div>
+      <form method="post" action="/logout" class="sb-teks">
+        <button class="sb-keluar" aria-label="Keluar" title="Keluar"><%- ikon('keluar') %></button>
+      </form>
+    </div>
+  </aside>
+
+  <div class="utama">
+    <header class="topbar no-print">
+      <button type="button" class="tb-menu" data-menu-hp aria-label="Buka menu"><%- ikon('menu') %></button>
+      <div class="tb-judul"><%= title %></div>
+      <div class="tb-kanan">
+        <% if (outlets.length > 1 && boleh('transaksi.semua')) { %>
+          <form method="post" action="/outlet" class="tb-outlet">
+            <%- ikon('toko') %>
+            <select name="outlet_id" data-autosubmit aria-label="Outlet aktif">
+              <% outlets.forEach(function (o) { %><option value="<%= o.id %>" <%= String(o.id) === String(outletId) ? 'selected' : '' %>><%= o.name %></option><% }) %>
+            </select>
+          </form>
+        <% } else if (outletAktif) { %>
+          <span class="tb-outlet"><%- ikon('toko') %><%= outletAktif.name %></span>
+        <% } %>
+        <% if (boleh('kasir') && path !== '/kasir') { %><a class="btn utama kecil tb-kasir" href="/kasir"><%- ikon('kasir') %>Kasir</a><% } %>
+      </div>
+    </header>
     <main class="isi">
       <% if (flash) { %><div class="notif <%= flash.jenis %>"><%= flash.pesan %></div><% } %>

@@ -35,6 +35,7 @@ r.get('/', izin('dashboard'), dashboard.index);
 // Kasir
 r.get('/kasir', izin('kasir'), kasir.index);
 r.get('/kasir/cari', izin('kasir'), kasir.cari);
+r.get('/kasir/produk', izin('kasir'), kasir.grid);
 r.get('/kasir/pelanggan', izin('kasir'), kasir.cariPelanggan);
 r.post('/kasir/hitung', izin('kasir'), kasir.hitung);
 r.post('/kasir/bayar', izin('kasir'), kasir.bayar);

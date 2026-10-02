@@ -177,6 +177,24 @@ async function searchForPos(q, outletId, limit = 20) {
   return rows;
 }
 
+/** Grid produk layar kasir: per kategori, terlaris 30 hari dulu, lalu nama */
+async function gridForPos({ outletId, categoryId, limit = 60 }) {
+  const p = [outletId, limit];
+  let w = '';
+  if (categoryId) { p.push(categoryId); w = `AND p.category_id = $${p.length}`; }
+  const { rows } = await db.query(
+    `SELECT p.id, p.name, p.variant_name, p.sku, p.barcode, p.sell_price AS price, NULL::bigint AS unit_id, u.name AS unit_name,
+            1 AS factor, COALESCE(s.qty,0) AS stok, p.photo, p.min_stock, COALESCE(j.terjual, 0) AS terjual
+     FROM products p LEFT JOIN units u ON u.id = p.unit_id
+     LEFT JOIN stocks s ON s.product_id = p.id AND s.outlet_id = $1
+     LEFT JOIN (SELECT si.product_id, SUM(si.base_qty) AS terjual FROM sale_items si JOIN sales x ON x.id = si.sale_id
+                WHERE x.status = 'selesai' AND x.outlet_id = $1 AND x.created_at >= now() - interval '30 days' GROUP BY si.product_id) j ON j.product_id = p.id
+     WHERE p.deleted_at IS NULL AND p.active ${w}
+       AND NOT EXISTS (SELECT 1 FROM products c WHERE c.parent_id = p.id AND c.deleted_at IS NULL)
+     ORDER BY terjual DESC, p.name LIMIT $2`, p);
+  return rows;
+}
+
 /** Satuan alternatif untuk produk (dipakai di keranjang kasir) */
 async function unitsFor(productIds) {
   if (!productIds.length) return [];
@@ -258,4 +276,4 @@ async function importCsv(text, { canSeeCost }) {
   });
 }
 
-module.exports = { list, get, save, remove, searchForPos, unitsFor, exportCsv, importCsv };
+module.exports = { list, get, save, remove, searchForPos, gridForPos, unitsFor, exportCsv, importCsv };

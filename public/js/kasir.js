@@ -45,12 +45,14 @@ document.addEventListener('alpine:init', function () {
       panelDiskon: false, hasil: Object.assign({}, kosong), galat: '',
       metode: [], payments: [], dialogBayar: false, sibuk: false, selesai: null,
       kunci: '', heldId: '', pecahan: ['20000', '50000', '100000'],
+      grid: [], kategori: '', memuatGrid: false,
       _req: 0,
 
       init: function () {
         this.kunci = this.$el.dataset.kunci;
         this.metode = JSON.parse(this.$el.dataset.metode || '[]');
         if (this.$el.dataset.held) this.lanjutkan(this.$el.dataset.held);
+        this.muatGrid();
         var self = this;
         window.addEventListener('keydown', function (e) { self.pintasan(e); });
         window.addEventListener('beforeunload', function (e) { if (self.items.length && !self.selesai) { e.preventDefault(); e.returnValue = ''; } });
@@ -63,6 +65,21 @@ document.addEventListener('alpine:init', function () {
         return i + (f ? ',' + f : '');
       },
       nz: function (v) { return toSen(v) !== 0n; },
+      // Perbandingan stok untuk tampilan saja (bukan perhitungan uang)
+      num: function (v) { return Number(v || 0); },
+      inisial: function (n) { return String(n || '?').split(/\s+/).filter(Boolean).slice(0, 2).map(function (w) { return w[0]; }).join('').toUpperCase(); },
+      jumlahItem: function () { return this.items.reduce(function (a, it) { return a + toQtyN(it.qty); }, 0n) === 0n ? 0 : fromQty(this.items.reduce(function (a, it) { return a + toQtyN(it.qty); }, 0n)); },
+      qtyDiKeranjang: function (id) {
+        var t = this.items.filter(function (it) { return String(it.product_id) === String(id); }).reduce(function (a, it) { return a + toQtyN(it.qty); }, 0n);
+        return t > 0n ? fromQty(t) : '';
+      },
+      muatGrid: async function () {
+        this.memuatGrid = true;
+        try { this.grid = (await api('/kasir/produk?kategori=' + encodeURIComponent(this.kategori))).rows; }
+        catch (e) { this.galat = e.message; }
+        finally { this.memuatGrid = false; }
+      },
+      pilihKategori: function (k) { this.kategori = k; this.muatGrid(); },
       fromSen: fromSen,
       jenis: function (code) { var m = this.metode.find(function (x) { return x.code === code; }); return m ? m.kind : ''; },
 
@@ -106,12 +123,14 @@ document.addEventListener('alpine:init', function () {
           this.items.push({
             key: ++urut, product_id: p.id, name: p.name + (p.variant_name ? ' - ' + p.variant_name : ''), sku: p.sku,
             unit_id: unitId, unit_name: p.unit_name, base_unit: p.unit_id ? '' : p.unit_name, units: p.units || [],
-            qty: '1', disc_type: 'persen', disc_value: '', note: '', price: p.price, line_total: p.price, discount: '0.00',
+            qty: '1', disc_type: 'persen', disc_value: '', note: '', price: p.price, line_total: p.price, discount: '0.00', buka: false,
           });
           this.aktif = this.items.length - 1;
         }
         this.q = ''; this.hasilCari = [];
         this.hitungUlang();
+        var self = this;
+        this.$nextTick(function () { var el = document.querySelector('.ks-baris.aktif'); if (el) el.scrollIntoView({ block: 'nearest' }); });
         this.$refs.cari.focus();
       },
       hapus: function (i) {
@@ -266,7 +285,7 @@ document.addEventListener('alpine:init', function () {
       cetak: function () {
         if (this.selesai) window.open('/transaksi/' + this.selesai.id + '/struk?cetak=1', 'struk', 'width=420,height=640');
       },
-      transaksiBaru: function () { this.selesai = null; this.reset(); },
+      transaksiBaru: function () { this.selesai = null; this.reset(); this.muatGrid(); },
 
       // ---------- Pintasan keyboard ----------
       pintasan: function (e) {
@@ -279,7 +298,7 @@ document.addEventListener('alpine:init', function () {
         var diInput = tag === 'input' || tag === 'select' || tag === 'textarea';
         switch (e.key) {
           case 'F2': e.preventDefault(); this.$refs.cari.focus(); this.$refs.cari.select(); break;
-          case 'F3': e.preventDefault(); this.$refs.pelanggan.focus(); break;
+          case 'F3': e.preventDefault(); if (this.$refs.pelanggan) this.$refs.pelanggan.focus(); break;
           case 'F4': e.preventDefault(); this.panelDiskon = true; var s = this; this.$nextTick(function () { s.$refs.diskon.focus(); }); break;
           case 'F8': e.preventDefault(); this.tahan(); break;
           case 'F9': e.preventDefault(); this.bukaBayar(); break;

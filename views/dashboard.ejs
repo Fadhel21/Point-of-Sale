@@ -1,7 +1,6 @@
 <%- include('partials/atas') %>
 <div class="kepala">
   <h1>Dashboard — <%= outletAktif ? outletAktif.name : '' %></h1>
-  <% if (boleh('kasir')) { %><a class="btn utama" href="/kasir">Buka Kasir</a><% } %>
 </div>
 <% if (boleh('shift') && !shiftSaya) { %><div class="notif error">Anda belum membuka shift. <a href="/shift">Buka shift</a> sebelum berjualan.</div><% } %>
 <div class="grid4">

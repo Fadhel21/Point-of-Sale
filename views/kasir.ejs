@@ -5,42 +5,52 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Kasir · POS</title>
   <link rel="stylesheet" href="/static/css/app.css?v=<%= v %>">
+  <link rel="stylesheet" href="/static/css/kasir.css?v=<%= v %>">
   <script src="/static/js/app.js?v=<%= v %>" defer></script>
   <script src="/static/js/kasir.js?v=<%= v %>" defer></script>
   <script src="/static/js/alpine.min.js?v=<%= v %>" defer></script>
 </head>
-<body>
-<div class="topbar">
-  <a href="/" style="margin-right:auto">← Menu</a>
-  <span class="redup"><%= outletAktif ? outletAktif.name : '' %></span>
-  <span><%= user.name %></span>
-  <% if (shift) { %><span class="lencana hijau">Shift buka sejak <%= waktu(shift.opened_at) %></span><% } %>
-  <a class="btn kecil" href="/transaksi/ditahan">Ditahan</a>
-  <a class="btn kecil" href="/transaksi">Riwayat</a>
-</div>
+<body class="hal-kasir">
+<header class="ks-bar">
+  <a href="/" class="ks-kembali" title="Kembali ke menu"><%- ikon('dashboard') %><span>Menu</span></a>
+  <div class="ks-merek"><span class="ks-logo"><%- ikon('kasir') %></span>Kasir</div>
+  <span class="ks-info"><%- ikon('toko') %><%= outletAktif ? outletAktif.name : '' %></span>
+  <% if (shift) { %><span class="ks-shift"><span class="ks-titik"></span>Shift sejak <%= waktu(shift.opened_at).slice(-5) %></span><% } %>
+  <nav class="ks-aksi-atas">
+    <a href="/transaksi/ditahan" class="ks-tombol-atas"><%- ikon('jeda') %><span>Ditahan</span></a>
+    <a href="/transaksi" class="ks-tombol-atas"><%- ikon('riwayat') %><span>Riwayat</span></a>
+    <a href="/shift" class="ks-tombol-atas"><%- ikon('shift') %><span>Shift</span></a>
+  </nav>
+  <span class="ks-user" title="<%= user.name %>"><%= user.name.split(' ').map(function (s) { return s[0]; }).slice(0, 2).join('').toUpperCase() %></span>
+</header>
 
 <% if (!shift) { %>
-  <div class="login panel">
-    <h1>Shift belum dibuka</h1>
-    <p>Buka shift dengan modal awal sebelum mulai berjualan.</p>
-    <form method="post" action="/shift/buka">
+  <div class="ks-tanpa-shift">
+    <form class="panel" method="post" action="/shift/buka">
+      <div class="ks-ikon-besar"><%- ikon('shift') %></div>
+      <h1>Shift belum dibuka</h1>
+      <p class="redup">Hitung uang di laci, lalu masukkan sebagai modal awal.</p>
       <input type="hidden" name="kembali" value="/kasir">
-      <div class="field"><label>Modal awal (Rp)</label><input name="opening_cash" inputmode="decimal" required autofocus value="0"></div>
-      <button class="btn utama">Buka Shift</button>
+      <div class="field"><label for="modal">Modal awal (Rp)</label><input id="modal" name="opening_cash" inputmode="decimal" required autofocus value="0"></div>
+      <button class="btn utama">Buka Shift & Mulai Berjualan</button>
     </form>
   </div>
 <% } else { %>
-<div class="kasir" x-data="kasir" x-cloak
+<div class="ks" x-data="kasir" x-cloak
      data-kunci="<%= kunci %>" data-held="<%= heldId %>"
-     data-metode='<%- JSON.stringify(metode).replace(/</g, "\\u003c").replace(/'/g, "\\u0027") %>'>
-  <section class="kiri">
-    <div class="cari">
+     data-metode="<%= JSON.stringify(metode) %>">
+
+  <!-- ===== Kiri: cari & pilih produk ===== -->
+  <section class="ks-kiri" aria-label="Pilih produk">
+    <div class="ks-cari">
+      <%- ikon('cari', 'ks-cari-ikon') %>
       <input x-ref="cari" x-model="q" @input.debounce.250ms="cari()" @keydown.enter.prevent="enterCari()"
              @keydown.down.prevent="pilihHasil(1)" @keydown.up.prevent="pilihHasil(-1)" @keydown.escape="hasilCari = []"
-             placeholder="Scan barcode / ketik nama atau kode produk  (F2)" autocomplete="off" autofocus>
-      <div class="hasil-cari" x-show="hasilCari.length" @click.outside="hasilCari = []">
+             placeholder="Scan barcode atau ketik nama / kode produk" autocomplete="off" autofocus aria-label="Cari produk">
+      <kbd class="ks-kbd">F2</kbd>
+      <div class="hasil-cari" x-show="hasilCari.length" @click.outside="hasilCari = []" role="listbox">
         <template x-for="(p, i) in hasilCari" :key="p.id + '-' + (p.unit_id || '')">
-          <div :class="{ pilih: i === idxHasil }" @click="tambah(p)">
+          <div :class="{ pilih: i === idxHasil }" @click="tambah(p)" role="option">
             <span><b x-text="p.name + (p.variant_name ? ' - ' + p.variant_name : '')"></b>
               <span class="redup kecil" x-text="' ' + p.sku + (p.unit_id ? ' · ' + p.unit_name : '')"></span></span>
             <span><span x-text="rupiah(p.price)"></span> <span class="redup kecil" x-text="'stok ' + angka(p.stok)"></span></span>
@@ -49,156 +59,188 @@
       </div>
     </div>
 
-    <div class="keranjang">
-      <table>
-        <thead><tr><th style="width:36px">#</th><th>Produk</th><th class="qty">Qty</th><th>Satuan</th><th class="uang">Harga</th><th class="uang">Diskon</th><th class="uang">Subtotal</th><th></th></tr></thead>
-        <tbody>
-          <template x-for="(it, i) in items" :key="it.key">
-            <tr :class="{ 'tebal': i === aktif }" @click="aktif = i">
-              <td x-text="i + 1"></td>
-              <td>
-                <div x-text="it.name"></div>
-                <div class="kecil redup">
-                  <span x-text="it.sku"></span>
-                  <template x-if="it.promo"><span class="lencana hijau" x-text="it.promo"></span></template>
-                  <template x-if="it.grosir"><span class="lencana kuning">grosir</span></template>
-                </div>
-                <input class="kecil" style="margin-top:.2rem" placeholder="catatan" x-model="it.note" @change="hitungUlang()" maxlength="200">
-              </td>
-              <td class="qty"><input class="qty-input" x-model="it.qty" @change="hitungUlang()" inputmode="decimal" :id="'qty' + i"></td>
-              <td>
-                <template x-if="it.units && it.units.length">
-                  <select x-model="it.unit_id" @change="hitungUlang()">
-                    <option value="" x-text="it.base_unit || 'satuan dasar'"></option>
-                    <template x-for="u in it.units"><option :value="u.unit_id" x-text="u.unit_name + ' (' + angka(u.factor) + ')'" :selected="String(u.unit_id) === String(it.unit_id)"></option></template>
-                  </select>
-                </template>
-                <template x-if="!it.units || !it.units.length"><span x-text="it.unit_name || ''"></span></template>
-              </td>
-              <td class="uang" x-text="rupiah(it.price)"></td>
-              <td class="uang">
-                <div style="display:flex;gap:.2rem">
-                  <select x-model="it.disc_type" @change="hitungUlang()" style="width:56px"><option value="persen">%</option><option value="nominal">Rp</option></select>
-                  <input x-model="it.disc_value" @change="hitungUlang()" style="width:80px" inputmode="decimal" placeholder="0">
-                </div>
-                <div class="kecil redup" x-show="it.discount && it.discount !== '0.00'" x-text="'-' + rupiah(it.discount)"></div>
-              </td>
-              <td class="uang" x-text="rupiah(it.line_total)"></td>
-              <td><button class="btn kecil" @click.stop="hapus(i)" title="Hapus (Del)">✕</button></td>
-            </tr>
-          </template>
-          <tr x-show="!items.length"><td colspan="8" class="redup" style="text-align:center;padding:3rem">Keranjang kosong. Scan atau cari produk.</td></tr>
-        </tbody>
-      </table>
+    <div class="ks-kategori" role="tablist" aria-label="Kategori">
+      <button type="button" role="tab" :aria-selected="kategori === ''" :class="{ aktif: kategori === '' }" @click="pilihKategori('')"><%- ikon('semua') %>Terlaris</button>
+      <% kategori.forEach(function (k) { %>
+        <button type="button" role="tab" :aria-selected="kategori === '<%= k.id %>'" :class="{ aktif: kategori === '<%= k.id %>' }" @click="pilihKategori('<%= k.id %>')"><%= k.name %></button>
+      <% }) %>
     </div>
-    <div class="pintasan" style="margin-top:.5rem">
-      <span><kbd>F2</kbd> cari</span><span><kbd>F3</kbd> pelanggan</span><span><kbd>F4</kbd> diskon/voucher</span>
-      <span><kbd>F8</kbd> tahan</span><span><kbd>F9</kbd> bayar</span><span><kbd>Ctrl</kbd>+<kbd>Del</kbd> batal</span>
-      <span><kbd>+</kbd>/<kbd>-</kbd> qty baris aktif</span><span><kbd>Del</kbd> hapus baris aktif</span>
+
+    <div class="ks-grid" :class="{ memuat: memuatGrid }">
+      <template x-for="p in grid" :key="p.id">
+        <button type="button" class="ks-produk" @click="tambah(p)" :class="{ habis: num(p.stok) <= 0 }"
+                :aria-label="p.name + ', ' + rupiah(p.price) + ', stok ' + angka(p.stok)">
+          <span class="ks-foto">
+            <template x-if="p.photo"><img :src="'/uploads/' + p.photo" alt="" loading="lazy"></template>
+            <template x-if="!p.photo"><span x-text="inisial(p.name)"></span></template>
+          </span>
+          <span class="ks-nama" x-text="p.name + (p.variant_name ? ' - ' + p.variant_name : '')"></span>
+          <span class="ks-harga" x-text="rupiah(p.price)"></span>
+          <span class="ks-stok" :class="{ rendah: num(p.stok) > 0 && num(p.stok) <= num(p.min_stock), nol: num(p.stok) <= 0 }"
+                x-text="num(p.stok) <= 0 ? 'Habis' : 'Stok ' + angka(p.stok)"></span>
+          <span class="ks-qty-badge" x-show="qtyDiKeranjang(p.id)" x-text="qtyDiKeranjang(p.id)"></span>
+        </button>
+      </template>
+      <div class="ks-kosong-grid" x-show="!memuatGrid && !grid.length">
+        <%- ikon('produk') %><p>Belum ada produk di kategori ini.</p>
+      </div>
+    </div>
+
+    <div class="pintasan">
+      <span><kbd>F2</kbd> cari</span><span><kbd>F3</kbd> pelanggan</span><span><kbd>F4</kbd> diskon</span>
+      <span><kbd>F8</kbd> tahan</span><span><kbd>F9</kbd> bayar</span><span><kbd>+</kbd> <kbd>−</kbd> qty</span>
+      <span><kbd>Del</kbd> hapus baris</span><span><kbd>Ctrl</kbd>+<kbd>Del</kbd> batal</span>
     </div>
   </section>
 
-  <aside class="kanan">
-    <div class="panel">
-      <label>Pelanggan (F3)</label>
-      <div style="position:relative">
-        <input x-ref="pelanggan" x-model="qPelanggan" @input.debounce.300ms="cariPelanggan()" placeholder="Umum — cari nama/kode/telepon" autocomplete="off">
-        <div class="hasil-cari" x-show="hasilPelanggan.length" @click.outside="hasilPelanggan = []">
-          <template x-for="c in hasilPelanggan" :key="c.id">
-            <div @click="pilihPelanggan(c)"><span x-text="c.name"></span><span class="redup kecil" x-text="c.code + (c.is_member ? ' · ' + angka(c.points) + ' poin' : '')"></span></div>
-          </template>
+  <!-- ===== Kanan: pesanan ===== -->
+  <aside class="ks-kanan" aria-label="Pesanan">
+    <div class="ks-pesanan-kepala">
+      <h2><%- ikon('keranjang') %>Pesanan</h2>
+      <span class="ks-jml" x-text="jumlahItem() + ' item'"></span>
+    </div>
+
+    <div class="ks-pelanggan">
+      <template x-if="!customer">
+        <div class="ks-cari-plg">
+          <%- ikon('user', 'ks-plg-ikon') %>
+          <input x-ref="pelanggan" x-model="qPelanggan" @input.debounce.300ms="cariPelanggan()" placeholder="Pelanggan umum — cari member (F3)" autocomplete="off" aria-label="Cari pelanggan">
+          <div class="hasil-cari" x-show="hasilPelanggan.length" @click.outside="hasilPelanggan = []">
+            <template x-for="c in hasilPelanggan" :key="c.id">
+              <div @click="pilihPelanggan(c)"><span x-text="c.name"></span><span class="redup kecil" x-text="c.code + (c.is_member ? ' · ' + angka(c.points) + ' poin' : '')"></span></div>
+            </template>
+          </div>
         </div>
-      </div>
+      </template>
       <template x-if="customer">
-        <div style="margin-top:.5rem" class="baris">
-          <div><b x-text="customer.name"></b> <span class="lencana hijau" x-show="customer.is_member">member</span>
-            <div class="kecil redup" x-show="customer.is_member" x-text="'Poin: ' + angka(customer.points)"></div></div>
-          <button class="btn kecil pas" @click="customer = null; points_use = ''; hitungUlang()">✕</button>
+        <div class="ks-plg-terpilih">
+          <span class="ks-plg-avatar" x-text="inisial(customer.name)"></span>
+          <div class="ks-plg-info"><b x-text="customer.name"></b>
+            <span x-show="customer.is_member" x-text="'Member · ' + angka(customer.points) + ' poin'"></span></div>
+          <input x-show="customer.is_member" x-model="points_use" @change="hitungUlang()" inputmode="numeric" placeholder="Pakai poin" class="ks-poin" aria-label="Poin yang dipakai">
+          <button type="button" class="ks-ikon-btn" @click="customer = null; points_use = ''; hitungUlang()" aria-label="Hapus pelanggan"><%- ikon('silang') %></button>
         </div>
-      </template>
-      <template x-if="customer && customer.is_member">
-        <div class="field" style="margin-top:.5rem"><label>Pakai poin</label><input x-model="points_use" @change="hitungUlang()" inputmode="numeric" placeholder="0"></div>
       </template>
     </div>
 
-    <div class="panel" x-show="panelDiskon">
-      <div class="baris">
-        <div><label>Diskon transaksi</label>
-          <div style="display:flex;gap:.2rem">
-            <select x-model="trx_disc_type" @change="hitungUlang()" style="width:60px"><option value="persen">%</option><option value="nominal">Rp</option></select>
-            <input x-ref="diskon" x-model="trx_disc_value" @change="hitungUlang()" inputmode="decimal" placeholder="0">
-          </div></div>
-        <div><label>Kode voucher</label><input x-model="voucher_code" @change="hitungUlang()" style="text-transform:uppercase"></div>
+    <div class="ks-baris-wrap">
+      <template x-for="(it, i) in items" :key="it.key">
+        <div class="ks-baris" :class="{ aktif: i === aktif }" @click="aktif = i">
+          <div class="ks-baris-atas">
+            <div class="ks-baris-nama">
+              <span x-text="it.name"></span>
+              <span class="ks-baris-sub">
+                <span x-text="rupiah(it.price)"></span>
+                <template x-if="it.units && it.units.length">
+                  <select x-model="it.unit_id" @change="hitungUlang()" @click.stop aria-label="Satuan">
+                    <option value="" x-text="it.base_unit || 'satuan'"></option>
+                    <template x-for="u in it.units"><option :value="u.unit_id" x-text="u.unit_name + ' (' + angka(u.factor) + ')'" :selected="String(u.unit_id) === String(it.unit_id)"></option></template>
+                  </select>
+                </template>
+                <template x-if="it.promo"><span class="ks-tag hijau" x-text="it.promo"></span></template>
+                <template x-if="it.grosir"><span class="ks-tag kuning">grosir</span></template>
+              </span>
+            </div>
+            <span class="ks-baris-total" x-text="rupiah(it.line_total)"></span>
+          </div>
+          <div class="ks-baris-bawah">
+            <div class="ks-stepper">
+              <button type="button" @click.stop="aktif = i; ubahQty(-1)" aria-label="Kurangi"><%- ikon('kurang') %></button>
+              <input x-model="it.qty" @change="hitungUlang()" @click.stop inputmode="decimal" :id="'qty' + i" aria-label="Jumlah">
+              <button type="button" @click.stop="aktif = i; ubahQty(1)" aria-label="Tambah"><%- ikon('tambah') %></button>
+            </div>
+            <button type="button" class="ks-ikon-btn" :class="{ nyala: it.buka || it.disc_value || it.note }" @click.stop="it.buka = !it.buka" aria-label="Diskon & catatan"><%- ikon('catatan') %></button>
+            <span class="ks-diskon-info" x-show="nz(it.discount)" x-text="'hemat ' + rupiah(it.discount)"></span>
+            <button type="button" class="ks-ikon-btn hapus" @click.stop="hapus(i)" aria-label="Hapus item"><%- ikon('hapus') %></button>
+          </div>
+          <div class="ks-baris-detail" x-show="it.buka" x-transition @click.stop>
+            <div class="ks-diskon-input">
+              <select x-model="it.disc_type" @change="hitungUlang()" aria-label="Jenis diskon"><option value="persen">%</option><option value="nominal">Rp</option></select>
+              <input x-model="it.disc_value" @change="hitungUlang()" inputmode="decimal" placeholder="Diskon item" aria-label="Nilai diskon">
+            </div>
+            <input x-model="it.note" @change="hitungUlang()" maxlength="200" placeholder="Catatan (mis. tanpa gula)" aria-label="Catatan item">
+          </div>
+        </div>
+      </template>
+      <div class="ks-kosong" x-show="!items.length">
+        <span class="ks-kosong-ikon"><%- ikon('barcode') %></span>
+        <b>Belum ada barang</b>
+        <p>Scan barcode, cari nama produk, atau ketuk produk di kiri.</p>
       </div>
     </div>
 
-    <div class="panel">
-      <table class="ringkas">
-        <tr><td>Subtotal</td><td x-text="rupiah(hasil.subtotal)"></td></tr>
-        <tr x-show="nz(hasil.trx_discount)"><td>Diskon transaksi</td><td x-text="'-' + rupiah(hasil.trx_discount)"></td></tr>
-        <tr x-show="nz(hasil.voucher_discount)"><td>Voucher <span x-text="hasil.voucher"></span></td><td x-text="'-' + rupiah(hasil.voucher_discount)"></td></tr>
-        <tr x-show="nz(hasil.points_value)"><td>Poin</td><td x-text="'-' + rupiah(hasil.points_value)"></td></tr>
-        <tr x-show="nz(hasil.tax)"><td x-text="'Pajak ' + (hasil.tax_inclusive ? '(termasuk) ' : '') + angka(hasil.tax_rate) + '%'"></td><td x-text="rupiah(hasil.tax)"></td></tr>
-      </table>
-      <div class="redup kecil" style="text-align:right;margin-top:.5rem">TOTAL</div>
-      <div class="total-besar" x-text="rupiah(hasil.total)"></div>
-      <div class="redup kecil" style="text-align:right" x-show="hasil.total_tunai !== hasil.total" x-text="'Tunai (dibulatkan): ' + rupiah(hasil.total_tunai)"></div>
-      <div class="notif error" x-show="galat" x-text="galat" style="margin-top:.5rem"></div>
+    <div class="ks-ringkas">
+      <div class="ks-diskon-trx" x-show="panelDiskon" x-transition>
+        <div class="ks-diskon-input">
+          <select x-model="trx_disc_type" @change="hitungUlang()" aria-label="Jenis diskon transaksi"><option value="persen">%</option><option value="nominal">Rp</option></select>
+          <input x-ref="diskon" x-model="trx_disc_value" @change="hitungUlang()" inputmode="decimal" placeholder="Diskon transaksi" aria-label="Diskon transaksi">
+        </div>
+        <input x-model="voucher_code" @change="hitungUlang()" placeholder="Kode voucher" style="text-transform:uppercase" aria-label="Kode voucher">
+      </div>
+      <dl>
+        <div><dt>Subtotal</dt><dd x-text="rupiah(hasil.subtotal)"></dd></div>
+        <div x-show="nz(hasil.trx_discount)"><dt>Diskon</dt><dd class="hijau" x-text="'−' + rupiah(hasil.trx_discount)"></dd></div>
+        <div x-show="nz(hasil.voucher_discount)"><dt x-text="'Voucher ' + (hasil.voucher || '')"></dt><dd class="hijau" x-text="'−' + rupiah(hasil.voucher_discount)"></dd></div>
+        <div x-show="nz(hasil.points_value)"><dt>Poin</dt><dd class="hijau" x-text="'−' + rupiah(hasil.points_value)"></dd></div>
+        <div x-show="nz(hasil.tax)"><dt x-text="'Pajak ' + angka(hasil.tax_rate) + '%' + (hasil.tax_inclusive ? ' (termasuk)' : '')"></dt><dd x-text="rupiah(hasil.tax)"></dd></div>
+      </dl>
+      <div class="notif error" x-show="galat" x-text="galat" role="alert"></div>
+      <div class="ks-tombol-kecil">
+        <button type="button" @click="tahan()" :disabled="!items.length || sibuk"><%- ikon('jeda') %>Tahan<kbd>F8</kbd></button>
+        <button type="button" @click="panelDiskon = !panelDiskon" :class="{ nyala: panelDiskon }"><%- ikon('diskon') %>Diskon<kbd>F4</kbd></button>
+        <button type="button" class="batal" @click="batal()" :disabled="!items.length"><%- ikon('silang') %>Batal</button>
+      </div>
+      <button type="button" class="ks-bayar" @click="bukaBayar()" :disabled="!items.length || sibuk">
+        <span class="ks-bayar-label"><%- ikon('bayar') %>Bayar <kbd>F9</kbd></span>
+        <span class="ks-bayar-total" x-text="rupiah(hasil.total)"></span>
+      </button>
+      <div class="ks-tunai-info" x-show="hasil.total_tunai !== hasil.total" x-text="'Bila tunai dibulatkan: ' + rupiah(hasil.total_tunai)"></div>
     </div>
-
-    <div class="baris">
-      <button class="btn" @click="tahan()" :disabled="!items.length || sibuk">Tahan (F8)</button>
-      <button class="btn bahaya" @click="batal()" :disabled="!items.length">Batal</button>
-      <button class="btn" @click="panelDiskon = !panelDiskon">Diskon (F4)</button>
-    </div>
-    <button class="btn utama" style="font-size:1.3rem;justify-content:center;padding:.9rem" @click="bukaBayar()" :disabled="!items.length || sibuk">Bayar (F9)</button>
   </aside>
 
   <!-- Dialog pembayaran -->
   <div class="latar" x-show="dialogBayar" x-transition.opacity @keydown.escape.window="if (!sibuk) dialogBayar = false">
-    <div class="dialog" @click.stop>
-      <h2>Pembayaran</h2>
-      <div class="baris"><div class="redup">Total</div><div class="total-besar pas" x-text="rupiah(totalBayar())"></div></div>
+    <div class="dialog ks-dialog" @click.stop role="dialog" aria-modal="true" aria-labelledby="judul-bayar">
+      <div class="ks-dialog-kepala"><h2 id="judul-bayar">Pembayaran</h2><button type="button" class="ks-ikon-btn" @click="dialogBayar = false" :disabled="sibuk" aria-label="Tutup"><%- ikon('silang') %></button></div>
+      <div class="ks-tagihan"><span>Total tagihan</span><b x-text="rupiah(totalBayar())"></b></div>
       <template x-for="(p, i) in payments" :key="i">
-        <div class="baris" style="margin:.5rem 0">
-          <select x-model="p.method_code" style="flex:0 0 150px">
+        <div class="ks-bayar-baris">
+          <select x-model="p.method_code" aria-label="Metode">
             <template x-for="m in metode"><option :value="m.code" x-text="m.name" :selected="m.code === p.method_code"></option></template>
           </select>
-          <input x-model="p.amount" inputmode="decimal" :id="'bayar' + i" @keydown.enter.prevent="simpan()">
-          <input x-model="p.reference" placeholder="Ref/No. kartu" x-show="jenis(p.method_code) !== 'tunai' && jenis(p.method_code) !== 'piutang'">
-          <button class="btn kecil pas" @click="payments.splice(i, 1)" x-show="payments.length > 1">✕</button>
+          <input x-model="p.amount" inputmode="decimal" :id="'bayar' + i" @keydown.enter.prevent="simpan()" placeholder="Jumlah" aria-label="Jumlah dibayar">
+          <input x-model="p.reference" placeholder="No. ref / kartu" x-show="jenis(p.method_code) !== 'tunai' && jenis(p.method_code) !== 'piutang'" aria-label="Referensi">
+          <button type="button" class="ks-ikon-btn" @click="payments.splice(i, 1)" x-show="payments.length > 1" aria-label="Hapus metode"><%- ikon('silang') %></button>
         </div>
       </template>
-      <div class="baris">
-        <button class="btn kecil pas" @click="tambahMetode()">+ Metode lain</button>
-        <button class="btn kecil pas" @click="uangPas()">Uang pas</button>
-        <template x-for="n in pecahan"><button class="btn kecil pas" @click="setTunai(n)" x-text="rupiah(n)"></button></template>
+      <div class="ks-cepat">
+        <button type="button" @click="uangPas()">Uang pas</button>
+        <template x-for="n in pecahan"><button type="button" @click="setTunai(n)" x-text="rupiah(n)"></button></template>
+        <button type="button" @click="tambahMetode()"><%- ikon('tambah') %>Metode lain</button>
       </div>
-      <div class="panel" style="margin-top:1rem">
-        <div class="baris"><span>Dibayar</span><b class="pas" x-text="rupiah(fromSen(dibayarSen()))"></b></div>
-        <div class="baris"><span x-text="sisaSen() > 0n ? 'Kurang' : 'Kembalian'"></span>
-          <b class="pas total-besar" :style="sisaSen() > 0n ? 'color:var(--bahaya)' : ''" x-text="rupiah(fromSen(sisaSen() > 0n ? sisaSen() : -sisaSen()))"></b></div>
+      <div class="ks-kembalian" :class="{ kurang: sisaSen() > 0n }">
+        <div><span>Dibayar</span><b x-text="rupiah(fromSen(dibayarSen()))"></b></div>
+        <div><span x-text="sisaSen() > 0n ? 'Kurang' : 'Kembalian'"></span><b class="besar" x-text="rupiah(fromSen(sisaSen() > 0n ? sisaSen() : -sisaSen()))"></b></div>
       </div>
-      <div class="notif error" x-show="galat" x-text="galat"></div>
-      <div class="aksi">
-        <button class="btn" @click="dialogBayar = false" :disabled="sibuk">Kembali (Esc)</button>
-        <button class="btn utama" @click="simpan()" :disabled="sibuk || sisaSen() > 0n" x-text="sibuk ? 'Menyimpan…' : 'Simpan (Enter)'"></button>
-      </div>
+      <div class="notif error" x-show="galat" x-text="galat" role="alert"></div>
+      <button type="button" class="ks-bayar" @click="simpan()" :disabled="sibuk || sisaSen() > 0n">
+        <span class="ks-bayar-label" x-text="sibuk ? 'Menyimpan…' : 'Selesaikan Pembayaran'"></span><kbd>Enter</kbd>
+      </button>
     </div>
   </div>
 
   <!-- Dialog selesai -->
   <div class="latar" x-show="selesai" x-transition.opacity>
-    <div class="dialog" @click.stop>
-      <h2>Transaksi tersimpan</h2>
-      <p>No. <b x-text="selesai && selesai.number"></b></p>
-      <p>Kembalian</p>
-      <div class="total-besar" x-text="selesai && rupiah(selesai.change)"></div>
-      <div class="aksi" style="margin-top:1rem">
+    <div class="dialog ks-dialog ks-sukses" @click.stop role="dialog" aria-modal="true" aria-labelledby="judul-sukses">
+      <div class="ks-centang"><svg viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="24"/><path d="M15 27l7 7 15-15"/></svg></div>
+      <h2 id="judul-sukses">Transaksi berhasil</h2>
+      <p class="redup" x-text="selesai && ('No. ' + selesai.number)"></p>
+      <div class="ks-tagihan"><span>Kembalian</span><b x-text="selesai && rupiah(selesai.change)"></b></div>
+      <div class="ks-sukses-aksi">
+        <button type="button" class="btn" @click="cetak()"><%- ikon('transaksi') %>Cetak struk <kbd>P</kbd></button>
         <a class="btn" :href="selesai && '/transaksi/' + selesai.id" target="_blank">Detail</a>
-        <button class="btn" @click="cetak()">Cetak Struk (P)</button>
-        <button class="btn utama" x-ref="baru" @click="transaksiBaru()">Transaksi Baru (Enter)</button>
       </div>
+      <button type="button" class="ks-bayar" x-ref="baru" @click="transaksiBaru()"><span class="ks-bayar-label">Transaksi baru</span><kbd>Enter</kbd></button>
     </div>
   </div>
 </div>

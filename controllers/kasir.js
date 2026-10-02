@@ -5,6 +5,7 @@ const products = require('../services/products');
 const customers = require('../services/customers');
 const shifts = require('../services/shifts');
 const payments = require('../services/payments');
+const master = require('../services/master');
 const { h, ip } = require('../lib/http');
 
 exports.index = h(async (req, res) => {
@@ -12,6 +13,7 @@ exports.index = h(async (req, res) => {
     title: 'Kasir',
     shift: await shifts.current(req.user.id),
     metode: await payments.listActive(),
+    kategori: await master.list('kategori'),
     kunci: uuidv4(),
     heldId: /^\d+$/.test(req.query.lanjut || '') ? req.query.lanjut : '',
   });
@@ -19,6 +21,13 @@ exports.index = h(async (req, res) => {
 
 exports.cari = h(async (req, res) => {
   const rows = await products.searchForPos(req.query.q, req.outletId);
+  const units = await products.unitsFor([...new Set(rows.map((r) => r.id))]);
+  res.json({ ok: true, rows: rows.map((r) => ({ ...r, units: units.filter((u) => String(u.product_id) === String(r.id)) })) });
+});
+
+exports.grid = h(async (req, res) => {
+  const cat = /^\d+$/.test(req.query.kategori || '') ? req.query.kategori : null;
+  const rows = await products.gridForPos({ outletId: req.outletId, categoryId: cat });
   const units = await products.unitsFor([...new Set(rows.map((r) => r.id))]);
   res.json({ ok: true, rows: rows.map((r) => ({ ...r, units: units.filter((u) => String(u.product_id) === String(r.id)) })) });
 });
