@@ -1,17 +1,11 @@
-# POS — Aplikasi Kasir Retail
+﻿# POS â€” Aplikasi Kasir Retail
 
 Aplikasi Point of Sale ringan: Node.js + Express + EJS + HTMX/Alpine.js + PostgreSQL.
 Tanpa tahap build, tanpa ORM, tanpa library native.
 
 ## Persiapan (PowerShell)
 
-1. Buat database (sesuaikan path PostgreSQL bila versinya berbeda):
-
-   ```powershell
-   & "C:\Program Files\PostgreSQL\18\bin\createdb.exe" -U postgres pos
-   ```
-
-2. Salin `.env.example` ke `.env` (bila belum ada), lalu isi `DATABASE_URL`:
+1. Salin `.env.example` ke `.env` (bila belum ada), lalu isi `DATABASE_URL`:
 
    ```powershell
    Copy-Item .env.example .env
@@ -21,18 +15,19 @@ Tanpa tahap build, tanpa ORM, tanpa library native.
    `JWT_SECRET` dan `COOKIE_SECRET` wajib diisi string acak panjang. Isi `SMTP_*` bila ingin mengirim
    struk dan peringatan stok lewat email.
 
-3. Pasang dependency, jalankan migrasi, lalu buat akun pemilik:
+2. Pasang dependency, jalankan migrasi, lalu buat akun pemilik:
 
    ```powershell
    npm install
-   npm run migrate
+   npm run migrate          # database dibuat otomatis bila belum ada
    npm run buat-pemilik -- admin PasswordKuat123 "Nama Pemilik"
    ```
 
-4. Jalankan aplikasi (dua jendela terminal):
+3. Jalankan aplikasi (dua jendela terminal):
 
    ```powershell
-   npm start          # web, http://localhost:3000
+   npm run dev        # web + restart otomatis saat file berubah (pengembangan)
+   npm start          # web, http://localhost:3000 (produksi)
    npm run worker     # job terjadwal: cadangan harian, peringatan stok minimum
    ```
 
@@ -52,7 +47,7 @@ dan membuatnya ulang setiap kali dijalankan. Database `pos` tidak disentuh.
 | `config/` | konfigurasi & koneksi DB, helper transaksi `withTransaction` |
 | `migrations/` | file SQL bernomor; **jangan edit migrasi yang sudah dijalankan**, buat file baru |
 | `services/` | seluruh SQL & aturan bisnis |
-| `controllers/` | baca request → panggil service → render (tanpa SQL) |
+| `controllers/` | baca request â†’ panggil service â†’ render (tanpa SQL) |
 | `routes/` | peta URL & izin per peran |
 | `views/` | template EJS |
 | `public/` | CSS & JS statis (HTMX, Alpine.js, Chart.js, kasir.js) |
@@ -84,15 +79,15 @@ dan membuatnya ulang setiap kali dijalankan. Database `pos` tidak disentuh.
 | F9 | bayar |
 | Enter (di dialog bayar) | simpan |
 | Ctrl+Del | batalkan transaksi |
-| + / − | ubah qty baris aktif |
+| + / âˆ’ | ubah qty baris aktif |
 | Del | hapus baris aktif |
-| ↑ / ↓ | pilih baris |
+| â†‘ / â†“ | pilih baris |
 | P / Enter (setelah bayar) | cetak struk / transaksi baru |
 
 ## Cadangan & pemulihan
 
 Cadangan dibuat dengan `pg_dump` (format custom) ke folder `backups/`, otomatis oleh worker atau
-manual dari Pengaturan → Cadangan Data. Atur `PG_DUMP_PATH` di `.env`.
+manual dari Pengaturan â†’ Cadangan Data. Atur `PG_DUMP_PATH` di `.env`.
 
 Pemulihan ke database baru:
 

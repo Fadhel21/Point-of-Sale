@@ -4,6 +4,7 @@
   "description": "Aplikasi POS ringan (Express + EJS + HTMX + PostgreSQL)",
   "main": "server.js",
   "scripts": {
+    "dev": "node --watch server.js",
     "start": "node server.js",
     "worker": "node worker/index.js",
     "migrate": "node scripts/migrate.js",

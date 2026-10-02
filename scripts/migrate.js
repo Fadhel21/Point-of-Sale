@@ -3,9 +3,31 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const { Client } = require('pg');
+const config = require('../config');
 const { pool } = require('../config/db');
 
+/** Buat database tujuan bila belum ada (lewat database "postgres") */
+async function pastikanDatabase() {
+  const u = new URL(config.databaseUrl);
+  const nama = decodeURIComponent(u.pathname.slice(1));
+  if (!/^[A-Za-z0-9_]+$/.test(nama)) throw new Error(`Nama database tidak valid: ${nama}`);
+  u.pathname = '/postgres';
+  const c = new Client({ connectionString: u.toString() });
+  await c.connect();
+  try {
+    const { rowCount } = await c.query('SELECT 1 FROM pg_database WHERE datname = $1', [nama]);
+    if (!rowCount) {
+      await c.query(`CREATE DATABASE "${nama}"`);
+      console.log(`Database "${nama}" dibuat.`);
+    }
+  } finally {
+    await c.end();
+  }
+}
+
 async function main() {
+  await pastikanDatabase();
   const dir = path.join(__dirname, '..', 'migrations');
   const client = await pool.connect();
   try {

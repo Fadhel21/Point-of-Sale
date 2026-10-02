@@ -32,9 +32,10 @@ function alokasi(jumlah, bobot) {
 }
 
 async function konfigurasi(client) {
-  const [pajak, pembulatan, poin] = await Promise.all([
-    settings.get('pajak', client), settings.get('pembulatan', client), settings.get('poin', client),
-  ]);
+  // Berurutan: satu client transaksi tidak boleh menjalankan query paralel
+  const pajak = await settings.get('pajak', client);
+  const pembulatan = await settings.get('pembulatan', client);
+  const poin = await settings.get('poin', client);
   return {
     pajakAktif: !!(pajak && pajak.aktif),
     tarif: pajak && pajak.aktif ? toSen(pajak.tarif || 0) : 0n, // 11% -> 1100n
