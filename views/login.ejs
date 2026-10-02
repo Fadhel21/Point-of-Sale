@@ -1,15 +1,111 @@
 <!doctype html>
 <html lang="id">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Masuk · POS</title>
-<link rel="stylesheet" href="/static/css/app.css"></head>
-<body>
-  <form class="login panel" method="post" action="/login">
-    <h1>Masuk ke POS</h1>
-    <% if (pesan) { %><div class="notif error"><%= pesan %></div><% } %>
-    <input type="hidden" name="next" value="<%= next %>">
-    <div class="field"><label for="u">Username</label><input id="u" name="username" autocomplete="username" required autofocus></div>
-    <div class="field"><label for="p">Password</label><input id="p" type="password" name="password" autocomplete="current-password" required></div>
-    <button class="btn utama" style="width:100%;justify-content:center">Masuk</button>
-  </form>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Masuk · POS</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+  <link rel="stylesheet" href="/static/css/login.css">
+  <script src="/static/js/login.js" defer></script>
+</head>
+<body class="hal-login">
+<main class="login-split">
+  <!-- Panel kiri: ilustrasi dekoratif dengan ikon bergerak -->
+  <section class="login-hero" aria-hidden="true">
+    <div class="hero-merek">
+      <svg viewBox="0 0 24 24" class="ikon"><path d="M3 3h2l2.4 12.2a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.6L21 7H6"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg>
+      <span>POS</span>
+    </div>
+
+    <div class="panggung">
+      <div class="cincin cincin-1"></div>
+      <div class="cincin cincin-2"></div>
+
+      <!-- Mesin kasir di tengah -->
+      <div class="pusat">
+        <svg viewBox="0 0 24 24" class="ikon"><rect x="3" y="10" width="18" height="11" rx="2"/><path d="M7 10V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v5"/><path d="M10 7h4"/><path d="M7 14h2M11 14h2M15 14h2M7 17h2M11 17h2M15 17h2"/></svg>
+        <span class="struk-keluar"></span>
+      </div>
+
+      <!-- Ikon yang mengorbit dan melayang -->
+      <div class="orbit orbit-a"><div class="chip" style="--d:0s">
+        <svg viewBox="0 0 24 24" class="ikon"><path d="M3 3h2l2.4 12.2a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.6L21 7H6"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg></div></div>
+      <div class="orbit orbit-b"><div class="chip aksen" style="--d:-1.2s">
+        <svg viewBox="0 0 24 24" class="ikon"><circle cx="12" cy="12" r="8"/><path d="M14.5 9.5c-.5-.9-1.5-1.5-2.5-1.5-1.7 0-2.8 1-2.8 2.1 0 2.8 5.6 1.4 5.6 4 0 1.2-1.2 2.1-2.8 2.1-1.2 0-2.2-.6-2.7-1.5M12 6.5v1.5M12 16.2v1.3"/></svg></div></div>
+      <div class="orbit orbit-c"><div class="chip" style="--d:-2.4s">
+        <svg viewBox="0 0 24 24" class="ikon"><path d="M3 5v14M7 5v14M10 5v14M14 5v14M17 5v14M21 5v14"/></svg></div></div>
+      <div class="orbit orbit-d"><div class="chip" style="--d:-0.6s">
+        <svg viewBox="0 0 24 24" class="ikon"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2z"/><path d="M9 7h6M9 11h6M9 15h4"/></svg></div></div>
+      <div class="orbit orbit-e"><div class="chip aksen" style="--d:-1.8s">
+        <svg viewBox="0 0 24 24" class="ikon"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></div></div>
+      <div class="orbit orbit-f"><div class="chip" style="--d:-3s">
+        <svg viewBox="0 0 24 24" class="ikon"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg></div></div>
+    </div>
+
+    <div class="hero-teks">
+      <h2>Kasir cepat, stok rapi, laporan akurat.</h2>
+      <ul>
+        <li><span class="titik"></span>Scan barcode &amp; pembayaran campuran</li>
+        <li><span class="titik"></span>Stok per outlet tercatat otomatis</li>
+        <li><span class="titik"></span>Laporan harian siap cetak &amp; PDF</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Panel kanan: formulir masuk -->
+  <section class="login-form-wrap">
+    <form class="login-kartu" method="post" action="/login" novalidate>
+      <div class="kepala-form">
+        <div class="logo-kecil" aria-hidden="true">
+          <svg viewBox="0 0 24 24" class="ikon"><path d="M3 3h2l2.4 12.2a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.6L21 7H6"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg>
+        </div>
+        <h1>Selamat datang</h1>
+        <p class="redup">Masuk untuk mulai berjualan.</p>
+      </div>
+
+      <% if (pesan) { %>
+        <div class="notif error" role="alert" id="galat-login">
+          <svg viewBox="0 0 24 24" class="ikon kecil-ikon" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+          <%= pesan %>
+        </div>
+      <% } %>
+
+      <input type="hidden" name="next" value="<%= next %>">
+
+      <div class="field-ikon">
+        <label for="u">Username</label>
+        <div class="input-ikon">
+          <svg viewBox="0 0 24 24" class="ikon" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+          <input id="u" name="username" autocomplete="username" required autofocus autocapitalize="none" spellcheck="false"
+                 <%= pesan ? 'aria-describedby=galat-login aria-invalid=true' : '' %>>
+        </div>
+      </div>
+
+      <div class="field-ikon">
+        <label for="p">Password</label>
+        <div class="input-ikon">
+          <svg viewBox="0 0 24 24" class="ikon" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          <input id="p" type="password" name="password" autocomplete="current-password" required>
+          <button type="button" class="lihat-pass" data-lihat="p" aria-label="Tampilkan password" aria-pressed="false">
+            <svg viewBox="0 0 24 24" class="ikon mata-buka"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg viewBox="0 0 24 24" class="ikon mata-tutup"><path d="M3 3l18 18M10.6 5.1A10.4 10.4 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7c1.7 0 3.2-.5 4.5-1.2M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+          </button>
+        </div>
+        <p class="caps-lock" id="caps" hidden>
+          <svg viewBox="0 0 24 24" class="ikon kecil-ikon" aria-hidden="true"><path d="M12 4 4 12h4v4h8v-4h4z"/><path d="M8 20h8"/></svg>
+          Caps Lock aktif
+        </p>
+      </div>
+
+      <button class="btn utama tombol-masuk" type="submit">
+        <span class="label">Masuk</span>
+        <svg viewBox="0 0 24 24" class="ikon panah" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        <span class="putar" aria-hidden="true"></span>
+      </button>
+
+      <p class="catatan redup kecil">Lupa password? Hubungi pemilik toko untuk mengatur ulang.</p>
+    </form>
+  </section>
+</main>
 </body>
 </html>

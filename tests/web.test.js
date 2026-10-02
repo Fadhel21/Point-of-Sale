@@ -19,8 +19,8 @@ const { menuUntuk } = require('../lib/akses');
 
 let server; let base;
 
-async function req(jar, method, url, body, json) {
-  const headers = { Cookie: jar.cookie || '', Origin: base };
+async function req(jar, method, url, body, json, extraHeaders) {
+  const headers = { Cookie: jar.cookie || '', Origin: base, ...(extraHeaders || {}) };
   let data;
   if (body && json) { headers['Content-Type'] = 'application/json'; headers.Accept = 'application/json'; data = JSON.stringify(body); }
   else if (body) { headers['Content-Type'] = 'application/x-www-form-urlencoded'; data = new URLSearchParams(body).toString(); }
@@ -38,7 +38,8 @@ async function req(jar, method, url, body, json) {
 
 async function login(username) {
   const jar = {};
-  const r = await req(jar, 'POST', '/login', { username, password: 'rahasia1', next: '/' });
+  // Tiru Chrome: submit form dengan Origin "null" + Sec-Fetch-Site same-origin
+  const r = await req(jar, 'POST', '/login', { username, password: 'rahasia1', next: '/' }, false, { Origin: 'null', 'Sec-Fetch-Site': 'same-origin' });
   assert.strictEqual(r.status, 302, `login ${username} gagal`);
   return jar;
 }
@@ -113,7 +114,9 @@ async function main() {
   // Permintaan dari situs lain ditolak (CSRF)
   const r = await fetch(base + '/kasir/tahan', { method: 'POST', headers: { Cookie: kasir.cookie, Origin: 'http://jahat.example', 'Content-Type': 'application/json' }, body: '{}' });
   assert.strictEqual(r.status, 403);
-  lulus('POST dari origin lain ditolak');
+  const r2 = await fetch(base + '/kasir/tahan', { method: 'POST', headers: { Cookie: kasir.cookie, Origin: 'null', 'Sec-Fetch-Site': 'cross-site', 'Content-Type': 'application/json' }, body: '{}' });
+  assert.strictEqual(r2.status, 403);
+  lulus('POST dari origin lain / cross-site ditolak; Origin null dari situs sendiri diterima');
 
   server.close();
   await db.pool.end();

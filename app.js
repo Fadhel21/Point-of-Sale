@@ -26,6 +26,8 @@ app.use(helmet({
     },
   },
   crossOriginEmbedderPolicy: false,
+  // "no-referrer" (bawaan helmet) membuat browser mengirim Origin: null pada submit form
+  referrerPolicy: { policy: 'same-origin' },
 }));
 
 app.use('/static', express.static(path.join(__dirname, 'public'), { maxAge: '7d' }));

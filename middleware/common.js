@@ -5,12 +5,20 @@ const { rupiah, angka } = require('../lib/money');
 /** Tolak request yang mengubah data bila Origin/Referer berasal dari situs lain */
 function cekOrigin(req, res, next) {
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
-  const sumber = req.headers.origin || req.headers.referer;
-  if (!sumber) return next(); // cookie SameSite=strict tetap melindungi
-  try {
-    const host = new URL(sumber).host;
-    if (host === req.headers.host) return next();
-  } catch (_) { /* jatuh ke penolakan */ }
+  // Browser modern mengirim Sec-Fetch-Site; situs lain tidak bisa memalsukannya.
+  const site = req.headers['sec-fetch-site'];
+  if (site) {
+    if (site === 'same-origin' || site === 'none') return next();
+  } else {
+    // Cadangan untuk klien tanpa Sec-Fetch-Site. Origin "null" (mis. karena Referrer-Policy)
+    // tidak dianggap asing; cookie SameSite=strict tetap melindungi.
+    const origin = req.headers.origin && req.headers.origin !== 'null' ? req.headers.origin : null;
+    const sumber = origin || req.headers.referer;
+    if (!sumber) return next();
+    try {
+      if (new URL(sumber).host === req.headers.host) return next();
+    } catch (_) { /* jatuh ke penolakan */ }
+  }
   const err = new Error('Permintaan ditolak (asal tidak sah).');
   err.status = 403;
   err.expose = true;
