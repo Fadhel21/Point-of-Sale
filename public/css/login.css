@@ -11,7 +11,7 @@
 .ikon { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
 .kecil-ikon { width: 18px; height: 18px; }
 
-.login-split { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(380px, .9fr); min-height: 100vh; }
+.login-split { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); min-height: 100vh; }
 
 /* ---------- Panel kiri ---------- */
 .login-hero {
@@ -75,7 +75,7 @@
 .titik { width: 8px; height: 8px; border-radius: 50%; background: var(--aksen); box-shadow: 0 0 0 4px rgba(234,88,12,.25); flex-shrink: 0; }
 
 /* ---------- Panel kanan ---------- */
-.login-form-wrap { display: grid; place-items: center; padding: 2rem 1.25rem; }
+.login-form-wrap { min-width: 0; display: grid; place-items: center; padding: 2rem 1.25rem; }
 .login-kartu { width: min(400px, 100%); animation: naik .6s var(--ease-keluar) .1s both; }
 .kepala-form { margin-bottom: 1.75rem; }
 .logo-kecil { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; color: #fff; background: var(--utama); margin-bottom: 1.1rem; box-shadow: 0 8px 20px rgba(15,118,110,.3); }
@@ -113,22 +113,47 @@
 .catatan { text-align: center; margin-top: 1.4rem; }
 
 /* ---------- Akun demo ---------- */
-.demo-box { margin-top: 1.5rem; padding: 1rem; border: 1px dashed #b7c4cc; border-radius: 12px; background: #fbfcfd; animation: naik .6s var(--ease-keluar) .3s both; }
-.demo-judul { display: flex; align-items: center; gap: .4rem; font-weight: 600; font-size: .9rem; margin-bottom: .7rem; }
-.demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
-.demo-akun { text-align: left; display: grid; gap: .15rem; padding: .6rem .7rem; min-height: 44px; border: 1px solid var(--garis); border-radius: 10px;
-  background: #fff; cursor: pointer; font: inherit; color: var(--teks); transition: border-color .2s, box-shadow .2s, transform .15s; }
-.demo-akun:hover { border-color: var(--utama); box-shadow: 0 4px 12px rgba(15,118,110,.12); transform: translateY(-1px); }
-.demo-akun:focus-visible { outline: 2px solid var(--utama); outline-offset: 2px; }
-.demo-akun.dipilih { border-color: var(--utama); box-shadow: 0 0 0 3px rgba(15,118,110,.18); }
-.demo-peran { font-weight: 700; font-size: .9rem; display: flex; align-items: center; gap: .35rem; }
-.demo-peran::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
-.peran-pemilik { color: #0f766e; } .peran-manajer { color: #1d4ed8; } .peran-kasir { color: #c2410c; } .peran-gudang { color: #7c3aed; }
-.demo-ket { font-size: .8rem; color: var(--redup); }
-.demo-akun code { font-size: .78rem; color: var(--teks); }
+.caps-lock[hidden] { display: none; }
+.demo { margin-top: 1.75rem; }
+.pemisah { display: flex; align-items: center; gap: .75rem; color: var(--redup); font-size: .875rem; margin-bottom: 1rem; }
+.pemisah::before, .pemisah::after { content: ""; flex: 1; height: 1px; background: var(--garis); }
+.demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .625rem; }
+.demo-akun {
+  --warna: #0f766e; --muda: #ccfbf1;
+  position: relative; display: flex; align-items: center; gap: .75rem; min-height: 68px; min-width: 0; padding: .75rem .8rem;
+  text-align: left; font: inherit; color: var(--teks); cursor: pointer;
+  background: #fff; border: 1px solid var(--garis); border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(16,24,40,.04);
+  transition: border-color .2s, box-shadow .2s, transform .2s var(--ease-keluar);
+  animation: naik .5s var(--ease-keluar) both; animation-delay: calc(.35s + var(--i) * 70ms);
+}
+.demo-akun.peran-manajer { --warna: #1d4ed8; --muda: #dbeafe; }
+.demo-akun.peran-kasir   { --warna: #c2410c; --muda: #ffedd5; }
+.demo-akun.peran-gudang  { --warna: #6d28d9; --muda: #ede9fe; }
+.demo-akun:hover { border-color: var(--warna); box-shadow: 0 8px 20px -6px color-mix(in srgb, var(--warna) 35%, transparent); transform: translateY(-2px); }
+.demo-akun:active { transform: translateY(0) scale(.98); }
+.demo-akun:focus-visible { outline: 2px solid var(--warna); outline-offset: 2px; }
+.demo-avatar { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; flex-shrink: 0;
+  background: var(--muda); color: var(--warna); transition: background .2s, color .2s; }
+.demo-avatar .ikon { width: 22px; height: 22px; }
+.demo-akun:hover .demo-avatar { background: var(--warna); color: #fff; }
+.demo-teks { display: grid; gap: .1rem; min-width: 0; flex: 1; }
+.demo-peran { font-weight: 700; font-size: .95rem; line-height: 1.2; }
+.demo-ket { font-size: .8125rem; color: var(--redup); line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.demo-panah { width: 18px; height: 18px; color: var(--redup); opacity: .5; transition: transform .2s var(--ease-keluar), opacity .2s, color .2s; }
+.demo-akun:hover .demo-panah { opacity: 1; color: var(--warna); transform: translateX(3px); }
+.demo-putar { display: none; width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid var(--muda); border-top-color: var(--warna); animation: putar .7s linear infinite; }
+.demo-akun.memuat .demo-putar { display: block; }
+.demo-akun.memuat .demo-panah { display: none; }
+.demo-akun.memuat { border-color: var(--warna); }
+.demo-grid.sibuk .demo-akun:not(.memuat) { opacity: .5; pointer-events: none; }
+.demo-catatan { display: block; line-height: 1.6; margin: 1rem 0 0; font-size: .8125rem; color: var(--redup); text-align: center; }
+.demo-catatan .ikon { vertical-align: -4px; margin-right: .3rem; }
+.demo-catatan code { white-space: nowrap; background: #eef2f4; padding: .05rem .35rem; border-radius: 5px; color: var(--teks); font-size: .8rem; }
 .input-ikon input.terisi { animation: kilat .6s ease; }
 @keyframes kilat { 0% { background: #ccfbf1; } 100% { background: #fff; } }
-@media (max-width: 380px) { .demo-grid { grid-template-columns: 1fr; } }
+@media (max-width: 420px) { .demo-grid { grid-template-columns: 1fr; } }
+
 
 /* ---------- Keyframes ---------- */
 @keyframes putar { to { rotate: 360deg; } }
@@ -142,7 +167,7 @@
 
 /* ---------- Responsif ---------- */
 @media (max-width: 960px) {
-  .login-split { grid-template-columns: 1fr; }
+  .login-split { grid-template-columns: minmax(0, 1fr); }
   .login-hero { padding: 1.5rem; min-height: auto; }
   .panggung { width: min(260px, 70%); margin: .5rem auto; }
   .hero-teks { display: none; }

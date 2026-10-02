@@ -71,7 +71,7 @@
 </div>
 <% if (!locals.email) { %>
 <div class="tombol"><button data-cetak>Cetak</button></div>
-<script src="/static/js/struk.js" data-otomatis="<%= cetak ? '1' : '' %>"></script>
+<script src="/static/js/struk.js?v=<%= v %>" data-otomatis="<%= cetak ? '1' : '' %>"></script>
 <% } %>
 </body>
 </html>

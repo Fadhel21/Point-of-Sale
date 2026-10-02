@@ -2,6 +2,9 @@
 const dayjs = require('dayjs');
 const { rupiah, angka } = require('../lib/money');
 
+// Penanda versi aset statis: berubah tiap server dijalankan ulang, agar cache browser diperbarui
+const VERSI = Date.now().toString(36);
+
 /** Tolak request yang mengubah data bila Origin/Referer berasal dari situs lain */
 function cekOrigin(req, res, next) {
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
@@ -26,6 +29,7 @@ function cekOrigin(req, res, next) {
 }
 
 function helperTampilan(req, res, next) {
+  res.locals.v = VERSI;
   res.locals.rupiah = rupiah;
   res.locals.angka = angka;
   // Nilai mentah untuk isi <input>: "12.5000" -> "12.5", "3.0000" -> "3"

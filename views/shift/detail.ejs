@@ -30,5 +30,5 @@
   <% } %>
   <% if (r.note) { %><p class="kecil">Catatan: <%= r.note %></p><% } %>
 </div>
-<% if (cetak) { %><script src="/static/js/struk.js" data-otomatis="1"></script><% } %>
+<% if (cetak) { %><script src="/static/js/struk.js?v=<%= v %>" data-otomatis="1"></script><% } %>
 <%- include('../partials/bawah') %>

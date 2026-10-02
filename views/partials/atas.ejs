@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><%= title %> · POS</title>
-  <link rel="stylesheet" href="/static/css/app.css">
-  <script src="/static/js/htmx.min.js" defer></script>
-  <script src="/static/js/app.js" defer></script>
-  <script src="/static/js/form.js" defer></script>
-  <script src="/static/js/alpine.min.js" defer></script>
+  <link rel="stylesheet" href="/static/css/app.css?v=<%= v %>">
+  <script src="/static/js/htmx.min.js?v=<%= v %>" defer></script>
+  <script src="/static/js/app.js?v=<%= v %>" defer></script>
+  <script src="/static/js/form.js?v=<%= v %>" defer></script>
+  <script src="/static/js/alpine.min.js?v=<%= v %>" defer></script>
 </head>
 <body hx-headers='{"Accept":"text/html"}'>
 <div class="app">
